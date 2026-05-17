@@ -8,531 +8,599 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
-    body { background-color:#fff; color:#333; font-family:'Space Mono',monospace; overflow:hidden; margin:0; }
-    .page-container { max-width:1100px; margin:40px auto; padding:0 20px 60px; }
-    h2 { text-align:center; font-size:2rem; color:#000; margin-bottom:6px; }
-    .subtitle { text-align:center; color:#666; margin-bottom:40px; font-size:0.95rem; }
+body{background:#fff;color:#333;font-family:'Space Mono',monospace;overflow:hidden;margin:0}
+.page-container{max-width:1100px;margin:40px auto;padding:0 20px 80px}
+h2{text-align:center;font-size:2rem;color:#000;margin-bottom:6px}
+.subtitle{text-align:center;color:#666;margin-bottom:40px;font-size:.95rem}
 
-    .navbar { display:flex; justify-content:space-between; align-items:center; background-color:#ffffff; padding:20px 40px; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
-    .navbar h1 { margin:0; font-size:1.8em; font-weight:800; }
-    .nav-links { list-style:none; display:flex; gap:30px; margin:0; padding:0; }
-    .nav-links a { text-decoration:none; color:#1c1c1c; font-weight:600; padding:5px 0; }
-    .nav-links a.active { border-bottom:3px solid #1c1c1c; }
+.navbar{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:20px 40px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+.navbar h1{margin:0;font-size:1.8em;font-weight:800}
+.nav-links{list-style:none;display:flex;gap:30px;margin:0;padding:0}
+.nav-links a{text-decoration:none;color:#1c1c1c;font-weight:600;padding:5px 0}
+.nav-links a.active{border-bottom:3px solid #1c1c1c}
+.nav-toggle{display:none;background:none;border:none;cursor:pointer;padding:5px;flex-direction:column;gap:5px}
+.nav-toggle span{display:block;width:25px;height:2px;background:#1c1c1c;border-radius:2px}
 
-    .week-selector-bar { display:flex; align-items:center; gap:14px; background:#f8f9fa; border:1px solid #e8e8e8; border-radius:12px; padding:14px 22px; margin-bottom:28px; flex-wrap:wrap; }
-    .week-selector-bar label { font-size:0.82rem; font-weight:700; color:#555; white-space:nowrap; }
-    .week-selector-bar select { flex:1; min-width:200px; padding:9px 14px; border:1.5px solid #ddd; border-radius:8px; font-size:0.88rem; font-family:'Space Mono',monospace; background:#fff; cursor:pointer; color:#1c1c1c; }
-    .week-badge { padding:5px 14px; border-radius:20px; font-size:0.74rem; font-weight:700; letter-spacing:0.5px; white-space:nowrap; }
-    .badge-current { background:#007bff; color:#fff; }
-    .badge-archived { background:#f0f0f0; color:#888; }
+.week-selector-bar{display:flex;align-items:center;gap:14px;background:#f8f9fa;border:1px solid #e8e8e8;border-radius:12px;padding:14px 22px;margin-bottom:28px;flex-wrap:wrap}
+.week-selector-bar label{font-size:.82rem;font-weight:700;color:#555;white-space:nowrap}
+.week-selector-bar select{flex:1;min-width:200px;padding:9px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:.88rem;font-family:'Space Mono',monospace;background:#fff;cursor:pointer;color:#1c1c1c}
+.week-badge{padding:5px 14px;border-radius:20px;font-size:.74rem;font-weight:700;letter-spacing:.5px;white-space:nowrap}
+.badge-current{background:#007bff;color:#fff}
+.badge-archived{background:#f0f0f0;color:#888}
 
-    .chart-card { background:#fff; border:1px solid #eee; border-radius:12px; padding:28px 30px; box-shadow:0 4px 12px rgba(0,0,0,0.05); margin-bottom:28px; }
-    .chart-card h3 { margin:0 0 6px 0; font-size:1.1rem; font-weight:700; color:#1c1c1c; }
-    .chart-card .card-sub { color:#777; font-size:0.82rem; margin-bottom:22px; }
+.chart-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:28px 30px;box-shadow:0 4px 12px rgba(0,0,0,.05);margin-bottom:28px}
+.chart-card h3{margin:0 0 6px;font-size:1.1rem;font-weight:700;color:#1c1c1c}
+.chart-card .card-sub{color:#777;font-size:.82rem;margin-bottom:22px}
+.section-label{font-size:.75rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#999;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #eee}
 
-    .section-label { font-size:0.75rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#999; margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid #eee; }
+/* ── Close Store Panel ───────────────────────────────── */
+.closure-panel{background:#fff8f0;border:1.5px solid #f5c07a;border-radius:12px;padding:22px 26px;margin-bottom:28px}
+.closure-panel h3{margin:0 0 6px;font-size:1rem;font-weight:700;color:#7b4a00}
+.closure-panel .card-sub{color:#9a6800;font-size:.82rem;margin-bottom:16px}
+.closure-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.closure-row input[type=date]{padding:9px 12px;border:1.5px solid #d4a85a;border-radius:8px;font-family:'Space Mono',monospace;font-size:.88rem;background:#fff;color:#1c1c1c;cursor:pointer}
+.btn-close-store{background:#c0392b;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-family:'Space Mono',monospace;font-size:.85rem;font-weight:700;cursor:pointer;transition:background .2s}
+.btn-close-store:hover{background:#96281b}
+.btn-open-store{background:#27ae60;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-family:'Space Mono',monospace;font-size:.85rem;font-weight:700;cursor:pointer;transition:background .2s}
+.btn-open-store:hover{background:#1e8449}
+.closed-days-list{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;min-height:20px}
+.closed-day-pill{display:flex;align-items:center;gap:6px;background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:20px;padding:4px 12px;font-size:.78rem;font-weight:700}
+.closed-day-pill button{background:none;border:none;color:#721c24;cursor:pointer;font-size:.9rem;padding:0;line-height:1;font-weight:900}
+.closed-days-empty{color:#aaa;font-size:.82rem;font-style:italic}
 
-    .tab-group-label { font-size:0.65rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#bbb; margin-bottom:6px; padding-left:2px; }
-    .forecast-tabs { display:flex; gap:0; border:1.5px solid #e0e0e0; border-radius:10px; overflow:hidden; margin-bottom:6px; flex-wrap:wrap; }
-    .tab-btn { flex:1; min-width:70px; padding:10px 6px; border:none; background:#f8f9fa; font-family:'Space Mono',monospace; font-size:0.78rem; font-weight:700; cursor:pointer; color:#777; transition:all .18s; border-right:1px solid #e0e0e0; text-align:center; line-height:1.4; }
-    .tab-btn:last-child { border-right:none; }
-    .tab-btn.active { background:#1c1c1c; color:#fff; }
-    .tab-btn:hover:not(.active) { background:#ececec; color:#333; }
+/* ── Tabs ────────────────────────────────────────────── */
+.tab-group-label{font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#bbb;margin-bottom:6px;padding-left:2px}
+.forecast-tabs{display:flex;gap:0;border:1.5px solid #e0e0e0;border-radius:10px;overflow:hidden;margin-bottom:6px;flex-wrap:wrap}
+.tab-btn{flex:1;min-width:70px;padding:10px 6px;border:none;background:#f8f9fa;font-family:'Space Mono',monospace;font-size:.78rem;font-weight:700;cursor:pointer;color:#777;transition:all .18s;border-right:1px solid #e0e0e0;text-align:center;line-height:1.4}
+.tab-btn:last-child{border-right:none}
+.tab-btn.active{background:#1c1c1c;color:#fff}
+.tab-btn:hover:not(.active){background:#ececec;color:#333}
 
-    .predict-controls { display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin-top:16px; margin-bottom:10px; }
-    .btn { padding:9px 20px; border:none; border-radius:7px; font-size:0.88rem; font-family:'Space Mono',monospace; font-weight:700; cursor:pointer; transition:all .2s ease; }
-    .btn-primary { background:#1c1c1c; color:#fff; }
-    .btn-primary:hover { background:#333; transform:translateY(-1px); }
-    .btn-primary:disabled { background:#888; cursor:not-allowed; transform:none; }
+.predict-controls{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:16px;margin-bottom:10px}
+.btn{padding:9px 20px;border:none;border-radius:7px;font-size:.88rem;font-family:'Space Mono',monospace;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-primary{background:#1c1c1c;color:#fff}
+.btn-primary:hover{background:#333;transform:translateY(-1px)}
+.btn-primary:disabled{background:#888;cursor:not-allowed;transform:none}
+.sarima-loading{display:none;align-items:center;gap:10px;padding:18px 0;color:#666;font-size:.85rem}
+.spinner{width:20px;height:20px;border:3px solid #eee;border-top-color:#1c1c1c;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-    .sarima-loading { display:none; align-items:center; gap:10px; padding:18px 0; color:#666; font-size:0.85rem; }
-    .spinner { width:20px; height:20px; border:3px solid #eee; border-top-color:#1c1c1c; border-radius:50%; animation:spin .7s linear infinite; }
-    @keyframes spin { to { transform:rotate(360deg); } }
+/* ── Params ──────────────────────────────────────────── */
+.params-panel{background:#f8f9fa;border:1px solid #e0e0e0;border-radius:10px;padding:16px 20px;margin-bottom:18px;font-size:.85rem}
+.params-panel-title{font-weight:700;font-size:.78rem;letter-spacing:1.2px;text-transform:uppercase;color:#888;margin-bottom:12px}
+.params-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.param-item{background:#fff;border:1px solid #e8e8e8;border-top-width:3px;border-radius:8px;padding:10px 14px}
+.param-label{font-size:.75rem;color:#888;font-weight:600;margin-bottom:4px}
+.param-value{font-size:.95rem;font-weight:800;color:#1c1c1c;font-family:'Space Mono',monospace}
+.param-sub{font-size:.72rem;color:#aaa;margin-top:2px}
 
-    .params-panel { background:#f8f9fa; border:1px solid #e0e0e0; border-radius:10px; padding:16px 20px; margin-bottom:18px; font-size:0.85rem; }
-    .params-panel-title { font-weight:700; font-size:0.78rem; letter-spacing:1.2px; text-transform:uppercase; color:#888; margin-bottom:12px; }
-    .params-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:10px; }
-    .param-item { background:#fff; border:1px solid #e8e8e8; border-top-width:3px; border-radius:8px; padding:10px 14px; }
-    .param-label { font-size:0.75rem; color:#888; font-weight:600; margin-bottom:4px; }
-    .param-value { font-size:0.95rem; font-weight:800; color:#1c1c1c; font-family:'Space Mono',monospace; }
-    .param-sub { font-size:0.72rem; color:#aaa; margin-top:2px; }
+/* ── Tables ──────────────────────────────────────────── */
+.pred-table{width:100%;border-collapse:collapse;font-size:.88rem;margin-top:4px}
+.pred-table thead tr{background:#1c1c1c;color:#fff}
+.pred-table th{padding:11px 14px;text-align:center;font-weight:700;letter-spacing:.3px}
+.pred-table th:first-child{text-align:left}
+.pred-table td{padding:10px 14px;border-bottom:1px solid #f0f0f0;text-align:center}
+.pred-table td:first-child{text-align:left}
+.pred-table tbody tr:nth-child(even){background:#fafafa}
+.pred-table tbody tr:hover{background:#f0f8ff}
+.pred-table td.cat-j{color:#dc3545;font-weight:700}
+.pred-table td.cat-t{color:#007bff;font-weight:700}
+.pred-table td.cat-s{color:#28a745;font-weight:700}
+.pred-table td.tot-c{font-weight:800;color:#1c1c1c}
+.pred-table tr.sum-row td{background:#1c1c1c;color:#fff;font-weight:800;font-size:.92rem;border-top:2px solid #000;border-bottom:none}
+.pred-table tr.sum-row td.cat-j{color:#ff8a95}
+.pred-table tr.sum-row td.cat-t{color:#90caf9}
+.pred-table tr.sum-row td.cat-s{color:#a5d6a7}
+.pred-table tr.closed-row td{background:#f8d7da;color:#999;font-style:italic}
 
-    .pred-table { width:100%; border-collapse:collapse; font-size:0.88rem; margin-top:4px; }
-    .pred-table thead tr { background:#1c1c1c; color:#fff; }
-    .pred-table th { padding:11px 14px; text-align:center; font-weight:700; letter-spacing:0.3px; }
-    .pred-table th:first-child { text-align:left; }
-    .pred-table td { padding:10px 14px; border-bottom:1px solid #f0f0f0; text-align:center; }
-    .pred-table td:first-child { text-align:left; }
-    .pred-table tbody tr:nth-child(even) { background:#fafafa; }
-    .pred-table tbody tr:hover { background:#f0f8ff; }
-    .pred-table td.cat-j { color:#dc3545; font-weight:700; }
-    .pred-table td.cat-t { color:#007bff; font-weight:700; }
-    .pred-table td.cat-s { color:#28a745; font-weight:700; }
-    .pred-table td.tot-c { font-weight:800; color:#1c1c1c; }
-    .pred-table tr.sum-row td { background:#1c1c1c; color:#fff; font-weight:800; font-size:0.92rem; border-top:2px solid #000; border-bottom:none; }
-    .pred-table tr.sum-row td.cat-j { color:#ff8a95; }
-    .pred-table tr.sum-row td.cat-t { color:#90caf9; }
-    .pred-table tr.sum-row td.cat-s { color:#a5d6a7; }
+.month-table{width:100%;border-collapse:collapse;font-size:.88rem;margin-top:4px}
+.month-table thead tr{background:#1c1c1c;color:#fff}
+.month-table th{padding:11px 14px;text-align:center;font-weight:700}
+.month-table th:first-child{text-align:left}
+.month-table td{padding:11px 14px;border-bottom:1px solid #f0f0f0;text-align:center}
+.month-table td:first-child{text-align:left;font-weight:700}
+.month-table tbody tr:nth-child(even){background:#fafafa}
+.month-table tbody tr:hover{background:#f0f8ff}
+.month-table td.cat-j{color:#dc3545;font-weight:700}
+.month-table td.cat-t{color:#007bff;font-weight:700}
+.month-table td.cat-s{color:#28a745;font-weight:700}
+.month-table td.tot-c{font-weight:800;color:#1c1c1c}
+.month-table tr.grand-row td{background:#1c1c1c;color:#fff;font-weight:800;font-size:.92rem;border-top:2px solid #000;border-bottom:none}
+.month-table tr.grand-row td.cat-j{color:#ff8a95}
+.month-table tr.grand-row td.cat-t{color:#90caf9}
+.month-table tr.grand-row td.cat-s{color:#a5d6a7}
 
-    .month-table { width:100%; border-collapse:collapse; font-size:0.88rem; margin-top:4px; }
-    .month-table thead tr { background:#1c1c1c; color:#fff; }
-    .month-table th { padding:11px 14px; text-align:center; font-weight:700; }
-    .month-table th:first-child { text-align:left; }
-    .month-table td { padding:11px 14px; border-bottom:1px solid #f0f0f0; text-align:center; }
-    .month-table td:first-child { text-align:left; font-weight:700; }
-    .month-table tbody tr:nth-child(even) { background:#fafafa; }
-    .month-table tbody tr:hover { background:#f0f8ff; }
-    .month-table td.cat-j { color:#dc3545; font-weight:700; }
-    .month-table td.cat-t { color:#007bff; font-weight:700; }
-    .month-table td.cat-s { color:#28a745; font-weight:700; }
-    .month-table td.tot-c { font-weight:800; color:#1c1c1c; }
-    .month-table tr.grand-row td { background:#1c1c1c; color:#fff; font-weight:800; font-size:0.92rem; border-top:2px solid #000; border-bottom:none; }
-    .month-table tr.grand-row td.cat-j { color:#ff8a95; }
-    .month-table tr.grand-row td.cat-t { color:#90caf9; }
-    .month-table tr.grand-row td.cat-s { color:#a5d6a7; }
+.hol-badge{display:inline-block;background:#fff3cd;color:#856404;border-radius:4px;font-size:.62rem;padding:1px 5px;margin-left:4px;font-weight:700;vertical-align:middle}
+.hol-closed{background:#f8d7da;color:#721c24}
+.closed-badge{display:inline-block;background:#f8d7da;color:#721c24;border-radius:4px;font-size:.65rem;padding:2px 7px;margin-left:5px;font-weight:800;letter-spacing:.5px;vertical-align:middle}
 
-    .hol-badge { display:inline-block; background:#fff3cd; color:#856404; border-radius:4px; font-size:0.62rem; padding:1px 5px; margin-left:4px; font-weight:700; vertical-align:middle; }
-    .hol-closed { background:#f8d7da; color:#721c24; }
+.legend-pills{display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.legend-pill{display:flex;align-items:center;gap:7px;font-size:.83rem;font-weight:600}
+.pill-dot{width:13px;height:13px;border-radius:3px;display:inline-block}
 
-    .legend-pills { display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
-    .legend-pill { display:flex; align-items:center; gap:7px; font-size:0.83rem; font-weight:600; }
-    .pill-dot { width:13px; height:13px; border-radius:3px; display:inline-block; }
+.hist-info{background:#f0f8ff;border:1px solid #b8daff;border-radius:8px;padding:10px 16px;margin-bottom:18px;font-size:.8rem;color:#004085}
 
-    .nav-toggle { display:none; background:none; border:none; cursor:pointer; padding:5px; flex-direction:column; gap:5px; }
-    .nav-toggle span { display:block; width:25px; height:2px; background:#1c1c1c; border-radius:2px; }
+/* ── Loading Screen ──────────────────────────────────── */
+#loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:#f4f7f9;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;transition:opacity .6s,visibility .6s}
+.loader-container{position:relative;width:120px;height:120px;display:flex;justify-content:center;align-items:center}
+.apparel-icon{position:absolute;width:80px;height:80px;opacity:0;transform:scale(.5) translateY(20px);transition:all .5s cubic-bezier(.34,1.56,.64,1)}
+.apparel-icon.active{opacity:1;transform:scale(1) translateY(0)}
+.apparel-icon.exit{opacity:0;transform:scale(1.1) translateY(-30px)}
+.icon-shirt path{fill:#007bff}.icon-shorts path{fill:#28a745}.icon-jacket path{fill:#dc3545}
+.loading-text{margin-top:20px;font-family:'Inter',sans-serif;font-weight:600;color:#555;letter-spacing:1px;text-transform:uppercase;font-size:.9em}
+.progress-container{width:200px;height:4px;background:#e0e0e0;border-radius:2px;margin-top:15px;overflow:hidden}
+.progress-bar{height:100%;width:0%;background:#1c1c1c;border-radius:2px;transition:width .1s linear}
 
-    #loading-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background-color:#f4f7f9; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:9999; transition:opacity .6s ease-out, visibility .6s; }
-    .loader-container { position:relative; width:120px; height:120px; display:flex; justify-content:center; align-items:center; }
-    .apparel-icon { position:absolute; width:80px; height:80px; opacity:0; transform:scale(.5) translateY(20px); transition:all .5s cubic-bezier(.34,1.56,.64,1); }
-    .apparel-icon.active { opacity:1; transform:scale(1) translateY(0); }
-    .apparel-icon.exit { opacity:0; transform:scale(1.1) translateY(-30px); }
-    .icon-shirt path { fill:#007bff; }
-    .icon-shorts path { fill:#28a745; }
-    .icon-jacket path { fill:#dc3545; }
-    .loading-text { margin-top:20px; font-family:'Inter',sans-serif; font-weight:600; color:#555; letter-spacing:1px; text-transform:uppercase; font-size:.9em; }
-    .progress-container { width:200px; height:4px; background-color:#e0e0e0; border-radius:2px; margin-top:15px; overflow:hidden; }
-    .progress-bar { height:100%; width:0%; background-color:#1c1c1c; border-radius:2px; transition:width .1s linear; }
-
-    @media (max-width:768px) {
-        body { overflow:auto !important; overflow-x:hidden; }
-        .navbar { padding:15px 20px; flex-wrap:wrap; }
-        .navbar h1 { font-size:1.3em; }
-        .nav-links { display:none !important; flex-direction:column; width:100%; gap:0; padding:10px 0; border-top:1px solid #eee; margin-top:10px; }
-        .nav-links.open { display:flex !important; }
-        .nav-links li { width:100%; }
-        .nav-links a { display:block; padding:10px 0; }
-        .nav-links a.active { border-bottom:none; font-weight:800; color:#007bff; }
-        .nav-toggle { display:flex; }
-        .page-container { margin:20px auto; padding:0 14px 40px; }
-        h2 { font-size:1.5rem; }
-        .subtitle { font-size:0.85rem; }
-        .week-selector-bar { padding:12px 14px; gap:10px; }
-        .week-selector-bar select { min-width:100%; }
-        .chart-card { padding:18px 16px; }
-        .chart-card canvas { max-height:260px; }
-        .tab-btn { font-size:0.7rem; padding:9px 4px; min-width:55px; }
-        .params-grid { grid-template-columns:1fr 1fr; }
-        .pred-table th,.pred-table td { padding:8px 8px; font-size:0.76rem; }
-        .month-table th,.month-table td { padding:8px 8px; font-size:0.76rem; }
-    }
-    @media (max-width:480px) {
-        .params-grid { grid-template-columns:1fr; }
-        h2 { font-size:1.3rem; }
-        .tab-btn { font-size:0.64rem; padding:8px 3px; min-width:44px; }
-        .month-table td:last-child { display:none; }
-        .month-table th:last-child { display:none; }
-    }
+/* ── Responsive ──────────────────────────────────────── */
+@media(max-width:768px){
+body{overflow:auto!important;overflow-x:hidden}
+.navbar{padding:15px 20px;flex-wrap:wrap}
+.navbar h1{font-size:1.3em}
+.nav-links{display:none!important;flex-direction:column;width:100%;gap:0;padding:10px 0;border-top:1px solid #eee;margin-top:10px}
+.nav-links.open{display:flex!important}
+.nav-links li{width:100%}
+.nav-links a{display:block;padding:10px 0}
+.nav-toggle{display:flex}
+.page-container{margin:20px auto;padding:0 14px 40px}
+h2{font-size:1.5rem}
+.chart-card{padding:18px 16px}
+.tab-btn{font-size:.7rem;padding:9px 4px;min-width:55px}
+.params-grid{grid-template-columns:1fr 1fr}
+.pred-table th,.pred-table td{padding:8px;font-size:.76rem}
+.month-table th,.month-table td{padding:8px;font-size:.76rem}
+}
+@media(max-width:480px){
+.params-grid{grid-template-columns:1fr}
+h2{font-size:1.3rem}
+.tab-btn{font-size:.64rem;padding:8px 3px;min-width:44px}
+}
 </style>
 </head>
 <body>
 
+<!-- Loading Screen -->
 <div id="loading-overlay">
-    <div class="loader-container">
-        <svg class="apparel-icon icon-shirt" viewBox="0 0 512 512"><path d="M376,128H336V96a16,16,0,0,0-16-16H192a16,16,0,0,0-16,16v32H136a40,40,0,0,0-40,40v64a8,8,0,0,0,8,8h40V424a24,24,0,0,0,24,24H344a24,24,0,0,0,24-24V240h40a8,8,0,0,0,8-8V168A40,40,0,0,0,376,128Z"/></svg>
-        <svg class="apparel-icon icon-shorts" viewBox="0 0 512 512"><path d="M392,112H120a24,24,0,0,0-24,24V344a24,24,0,0,0,24,24h88v-80h96v80h88a24,24,0,0,0,24-24V136A24,24,0,0,0,392,112Z"/></svg>
-        <svg class="apparel-icon icon-jacket" viewBox="0 0 512 512"><path d="M408.6,147.4l-56-88A16,16,0,0,0,339.1,52H172.9a16,16,0,0,0-13.5,7.4l-56,88A32,32,0,0,0,96,164.6V428a20,20,0,0,0,20,20H396a20,20,0,0,0,20-20V164.6A32,32,0,0,0,408.6,147.4Z"/></svg>
-    </div>
-    <div class="loading-text" id="loading-text">Loading...</div>
-    <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+  <div class="loader-container">
+    <svg class="apparel-icon icon-shirt" viewBox="0 0 512 512"><path d="M376,128H336V96a16,16,0,0,0-16-16H192a16,16,0,0,0-16,16v32H136a40,40,0,0,0-40,40v64a8,8,0,0,0,8,8h40V424a24,24,0,0,0,24,24H344a24,24,0,0,0,24-24V240h40a8,8,0,0,0,8-8V168A40,40,0,0,0,376,128Z"/></svg>
+    <svg class="apparel-icon icon-shorts" viewBox="0 0 512 512"><path d="M392,112H120a24,24,0,0,0-24,24V344a24,24,0,0,0,24,24h88v-80h96v80h88a24,24,0,0,0,24-24V136A24,24,0,0,0,392,112Z"/></svg>
+    <svg class="apparel-icon icon-jacket" viewBox="0 0 512 512"><path d="M408.6,147.4l-56-88A16,16,0,0,0,339.1,52H172.9a16,16,0,0,0-13.5,7.4l-56,88A32,32,0,0,0,96,164.6V428a20,20,0,0,0,20,20H396a20,20,0,0,0,20-20V164.6A32,32,0,0,0,408.6,147.4Z"/></svg>
+  </div>
+  <div class="loading-text" id="loading-text">Loading...</div>
+  <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
 </div>
 
+<!-- Navbar -->
 <div class="navbar">
-    <h1>Forecast</h1>
-    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
-    <ul class="nav-links">
-        <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-        <li><a href="{{ url_for('inventory') }}">Inventory</a></li>
-        <li><a href="{{ url_for('sales') }}">Sales</a></li>
-        <li><a href="{{ url_for('forecast') }}" class="active">Forecast</a></li>
-        <li><a href="{{ url_for('pos') }}">POS</a></li>
-        <li><a href="{{ url_for('logout') }}">Logout</a></li>
-    </ul>
+  <h1>Forecast</h1>
+  <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+  <ul class="nav-links">
+    <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+    <li><a href="{{ url_for('inventory') }}">Inventory</a></li>
+    <li><a href="{{ url_for('sales') }}">Sales</a></li>
+    <li><a href="{{ url_for('forecast') }}" class="active">Forecast</a></li>
+    <li><a href="{{ url_for('pos') }}">POS</a></li>
+    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+  </ul>
 </div>
 
 <div class="page-container">
-    <h2>Sales Forecast</h2>
-    <p class="subtitle">Select a week to view actual sales, then predict future demand using SARIMA.</p>
+  <h2>Sales Forecast</h2>
+  <p class="subtitle">View actual sales per week · Tag store closure days · Run SARIMA demand forecast</p>
 
-    <div class="week-selector-bar">
-        <label for="weekSelect">📆 Viewing week:</label>
-        <select id="weekSelect" onchange="navigateToWeek(this.value)">
-            {% for w in available_weeks %}
-            <option value="{{ w.start }}" {% if w.start == selected_week %}selected{% endif %}>
-                {{ w.label }}{% if loop.first %} (Current Week){% endif %}
-            </option>
-            {% endfor %}
-        </select>
-        {% if is_current_week %}
-            <span class="week-badge badge-current">📅 Current Week</span>
-        {% else %}
-            <span class="week-badge badge-archived">📦 Past Week</span>
-            <a href="{{ url_for('forecast') }}" style="font-size:0.8rem;color:#007bff;text-decoration:none;font-weight:700;">→ Go to Current Week</a>
-        {% endif %}
+  <!-- Training Data Info -->
+
+
+  <!-- Week Selector -->
+  <div class="week-selector-bar">
+    <label for="weekSelect">📆 Viewing week:</label>
+    <select id="weekSelect" onchange="navigateToWeek(this.value)">
+      {% for w in available_weeks %}
+      <option value="{{ w.start }}" {% if w.start == selected_week %}selected{% endif %}>
+        {{ w.label }}{% if loop.first %} (Current Week){% endif %}
+      </option>
+      {% endfor %}
+    </select>
+    {% if is_current_week %}
+      <span class="week-badge badge-current">📅 Current Week</span>
+    {% else %}
+      <span class="week-badge badge-archived">📦 Past Week</span>
+      <a href="{{ url_for('forecast') }}" style="font-size:.8rem;color:#007bff;text-decoration:none;font-weight:700;">→ Go to Current Week</a>
+    {% endif %}
+  </div>
+
+  <!-- Actual Sales Chart -->
+  <div class="chart-card">
+    <h3>📊 Actual Sales — {{ date_range_label }}</h3>
+    <div class="legend-pills">
+      <div class="legend-pill"><span class="pill-dot" style="background:#dc3545;"></span> Jackets</div>
+      <div class="legend-pill"><span class="pill-dot" style="background:#007bff;"></span> T-shirts</div>
+      <div class="legend-pill"><span class="pill-dot" style="background:#28a745;"></span> Shorts</div>
+    </div>
+    <canvas id="salesBarChart" height="340"></canvas>
+  </div>
+
+  <!-- ── Close Store Panel ─────────────────────────── -->
+  <div class="closure-panel">
+    <h3>🔒 Manage Store Closures</h3>
+    <p class="card-sub">Tag days when the store will be CLOSED. The SARIMA model will forecast 0 sales on those days.</p>
+    <div class="closure-row">
+      <input type="date" id="closureDatePicker" />
+      <button class="btn-close-store" onclick="markDay(true)">🔴 Mark as CLOSED</button>
+      <button class="btn-open-store"  onclick="markDay(false)">🟢 Mark as OPEN</button>
+    </div>
+    <div style="margin-top:12px;font-size:.78rem;font-weight:700;color:#7b4a00;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;">Tagged Closed Days:</div>
+    <div class="closed-days-list" id="closedDaysList">
+      <span class="closed-days-empty">No days tagged as closed yet.</span>
+    </div>
+  </div>
+
+  <!-- ── SARIMA Forecast Card ──────────────────────── -->
+  <div class="chart-card">
+    <h3>🔮 SARIMA Demand Forecast</h3>
+    <p class="card-sub">SARIMA(1,1,1)(1,1,1)[7] trained on 1 year of sales. Accounts for PH holidays, seasonal demand, bulk orders, no-order weeks, and tagged store closures.</p>
+
+    <div class="tab-group-label">Short-term</div>
+    <div class="forecast-tabs">
+      <button class="tab-btn active" data-dur="1d"  data-mode="weekly"  onclick="selectTab(this)">Tomorrow<br><small>1 Day</small></button>
+      <button class="tab-btn"        data-dur="7d"  data-mode="weekly"  onclick="selectTab(this)">1 Week<br><small>7 Days</small></button>
+      <button class="tab-btn"        data-dur="14d" data-mode="weekly"  onclick="selectTab(this)">2 Weeks<br><small>14 Days</small></button>
+      <button class="tab-btn"        data-dur="21d" data-mode="weekly"  onclick="selectTab(this)">3 Weeks<br><small>21 Days</small></button>
+      <button class="tab-btn"        data-dur="1m"  data-mode="weekly"  onclick="selectTab(this)">1 Month<br><small>30 Days</small></button>
     </div>
 
-    <!-- ACTUAL SALES CHART -->
-    <div class="chart-card">
-        <h3>📊 Actual Sales — {{ date_range_label }}</h3>
-        <div class="legend-pills">
-            <div class="legend-pill"><span class="pill-dot" style="background:#dc3545;"></span> Jackets</div>
-            <div class="legend-pill"><span class="pill-dot" style="background:#007bff;"></span> T-shirts</div>
-            <div class="legend-pill"><span class="pill-dot" style="background:#28a745;"></span> Shorts</div>
-        </div>
-        <canvas id="salesBarChart" height="340"></canvas>
+    <div class="tab-group-label" style="margin-top:14px;">Long-term</div>
+    <div class="forecast-tabs">
+      <button class="tab-btn" data-dur="3m"  data-mode="monthly" onclick="selectTab(this)">3 Months</button>
+      <button class="tab-btn" data-dur="6m"  data-mode="monthly" onclick="selectTab(this)">6 Months</button>
+      <button class="tab-btn" data-dur="12m" data-mode="monthly" onclick="selectTab(this)">12 Months</button>
     </div>
 
-    <!-- SARIMA FORECAST CARD -->
-    <div class="chart-card">
-        <h3>🔮 SARIMA Demand Forecast</h3>
-        <p class="card-sub">Powered by SARIMA trained on 1 year of historical sales. Accounts for Philippine holidays, seasonal demand patterns, bulk orders, and store closure days.</p>
-
-        <div class="tab-group-label">Short-term (Weekly)</div>
-        <div class="forecast-tabs">
-            <button class="tab-btn active" data-dur="1d" data-mode="weekly" onclick="selectTab(this)">Tomorrow<br><small>1 Day</small></button>
-            <button class="tab-btn" data-dur="7d"  data-mode="weekly" onclick="selectTab(this)">1 Week<br><small>7 Days</small></button>
-            <button class="tab-btn" data-dur="14d" data-mode="weekly" onclick="selectTab(this)">2 Weeks<br><small>14 Days</small></button>
-            <button class="tab-btn" data-dur="21d" data-mode="weekly" onclick="selectTab(this)">3 Weeks<br><small>21 Days</small></button>
-            <button class="tab-btn" data-dur="28d" data-mode="weekly" onclick="selectTab(this)">4 Weeks<br><small>28 Days</small></button>
-        </div>
-
-        <div class="tab-group-label" style="margin-top:14px;">Long-term (Monthly)</div>
-        <div class="forecast-tabs">
-            <button class="tab-btn" data-dur="3m"  data-mode="monthly" onclick="selectTab(this)">3 Months</button>
-            <button class="tab-btn" data-dur="6m"  data-mode="monthly" onclick="selectTab(this)">6 Months</button>
-            <button class="tab-btn" data-dur="9m"  data-mode="monthly" onclick="selectTab(this)">9 Months</button>
-            <button class="tab-btn" data-dur="12m" data-mode="monthly" onclick="selectTab(this)">12 Months</button>
-        </div>
-
-        <div class="predict-controls">
-            <button class="btn btn-primary" id="predictBtn" onclick="runPrediction()">⚡ Run SARIMA Forecast</button>
-            <span id="selLabel" style="font-size:0.82rem;color:#666;font-weight:700;"></span>
-        </div>
-
-        <div class="sarima-loading" id="sarimaLoading">
-            <div class="spinner"></div>
-            <span>Running SARIMA model — may take a few seconds…</span>
-        </div>
-
-        <div id="predictionResults" style="display:none;">
-            <div class="params-panel" id="paramsPanel"></div>
-
-            <!-- Daily table -->
-            <div id="dailyView">
-                <div class="section-label">Predicted Daily Sales</div>
-                <div style="overflow-x:auto;">
-                    <table class="pred-table">
-                        <thead><tr>
-                            <th style="text-align:left;">Date</th>
-                            <th style="color:#ff8a95;">🧥 Jackets</th>
-                            <th style="color:#90caf9;">👕 T-shirts</th>
-                            <th style="color:#a5d6a7;">🩳 Shorts</th>
-                            <th>Total</th>
-                        </tr></thead>
-                        <tbody id="predTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Monthly table -->
-            <div id="monthlyView" style="display:none;">
-                <div class="section-label">Monthly Forecast Summary</div>
-                <div style="overflow-x:auto;">
-                    <table class="month-table">
-                        <thead><tr>
-                            <th style="text-align:left;">Month</th>
-                            <th style="color:#ff8a95;">🧥 Jackets</th>
-                            <th style="color:#90caf9;">👕 T-shirts</th>
-                            <th style="color:#a5d6a7;">🩳 Shorts</th>
-                            <th>Total</th>
-                            <th>PH Season Notes</th>
-                        </tr></thead>
-                        <tbody id="monthTableBody"></tbody>
-                    </table>
-                </div>
-                <div style="margin-top:28px;">
-                    <div class="section-label">Monthly Trend Chart</div>
-                    <canvas id="monthlyChart" height="280"></canvas>
-                </div>
-            </div>
-        </div>
+    <div class="predict-controls">
+      <button class="btn btn-primary" id="predictBtn" onclick="runPrediction()">⚡ Run SARIMA Forecast</button>
+      <span id="selLabel" style="font-size:.82rem;color:#666;font-weight:700;"></span>
     </div>
+
+    <div class="sarima-loading" id="sarimaLoading">
+      <div class="spinner"></div>
+      <span>Running SARIMA model — may take a few seconds…</span>
+    </div>
+
+    <div id="predictionResults" style="display:none;">
+      <div class="params-panel" id="paramsPanel"></div>
+
+      <!-- Daily table -->
+      <div id="dailyView">
+        <div class="section-label">Predicted Daily Sales</div>
+        <div style="overflow-x:auto;">
+          <table class="pred-table">
+            <thead><tr>
+              <th style="text-align:left;">Date</th>
+              <th style="color:#ff8a95;">🧥 Jackets</th>
+              <th style="color:#90caf9;">👕 T-shirts</th>
+              <th style="color:#a5d6a7;">🩳 Shorts</th>
+              <th>Total</th>
+            </tr></thead>
+            <tbody id="predTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Monthly table -->
+      <div id="monthlyView" style="display:none;">
+        <div class="section-label">Monthly Forecast Summary</div>
+        <div style="overflow-x:auto;">
+          <table class="month-table">
+            <thead><tr>
+              <th style="text-align:left;">Month</th>
+              <th style="color:#ff8a95;">🧥 Jackets</th>
+              <th style="color:#90caf9;">👕 T-shirts</th>
+              <th style="color:#a5d6a7;">🩳 Shorts</th>
+              <th>Total</th>
+              <th>PH Season Notes</th>
+            </tr></thead>
+            <tbody id="monthTableBody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:28px;">
+          <div class="section-label">Monthly Trend Chart</div>
+          <canvas id="monthlyChart" height="280"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-// ── LOADING SCREEN ──────────────────────────────
+// ── Loading screen ──────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    const overlay = document.getElementById('loading-overlay');
-    const icons   = document.querySelectorAll('.apparel-icon');
-    const bar     = document.getElementById('progress-bar');
-    const txt     = document.getElementById('loading-text');
-    const msgs    = ["Loading...", "Preparing Data...", "Almost Ready..."];
-    let idx = 0;
-    icons[0].classList.add('active'); txt.innerText = msgs[0];
-    const ci = setInterval(() => {
-        icons[idx].classList.remove('active'); icons[idx].classList.add('exit');
-        idx = (idx + 1) % icons.length;
-        icons[idx].classList.remove('exit'); icons[idx].classList.add('active');
-        txt.innerText = msgs[idx];
-    }, 600);
-    let p = 0;
-    const pi = setInterval(() => { p = Math.min(p + 3, 100); bar.style.width = p + '%'; }, 57);
-    setTimeout(() => {
-        clearInterval(ci); clearInterval(pi);
-        overlay.style.opacity = '0';
-        setTimeout(() => { overlay.style.visibility = 'hidden'; document.body.style.overflowY = 'auto'; }, 600);
-    }, 2000);
+  const overlay=document.getElementById('loading-overlay');
+  const icons=document.querySelectorAll('.apparel-icon');
+  const bar=document.getElementById('progress-bar');
+  const txt=document.getElementById('loading-text');
+  const msgs=["Loading...","Preparing Data...","Almost Ready..."];
+  let idx=0;
+  icons[0].classList.add('active'); txt.innerText=msgs[0];
+  const ci=setInterval(()=>{
+    icons[idx].classList.remove('active'); icons[idx].classList.add('exit');
+    idx=(idx+1)%icons.length;
+    icons[idx].classList.remove('exit'); icons[idx].classList.add('active');
+    txt.innerText=msgs[idx];
+  },600);
+  let p=0;
+  const pi=setInterval(()=>{ p=Math.min(p+3,100); bar.style.width=p+'%'; },57);
+  setTimeout(()=>{
+    clearInterval(ci); clearInterval(pi);
+    overlay.style.opacity='0';
+    setTimeout(()=>{ overlay.style.visibility='hidden'; document.body.style.overflowY='auto'; },600);
+  },2000);
+
+  // Set default date picker to today
+  const dp=document.getElementById('closureDatePicker');
+  dp.value=new Date().toISOString().slice(0,10);
+
+  // Load closed days
+  fetchClosedDays();
 });
 
-function navigateToWeek(w) { window.location.href = '/forecast?week=' + w; }
+document.getElementById('navToggle').addEventListener('click',()=>{
+  document.querySelector('.nav-links').classList.toggle('open');
+});
 
-// ── FLASK DATA ──────────────────────────────────
+function navigateToWeek(w){ window.location.href='/forecast?week='+w; }
+
+// ── Flask data ──────────────────────────────────────────────────────────────
 const dailyData = {{ daily_data | tojson }};
 const CATS   = ["Jackets","T-shirts","Shorts"];
-const COLORS = { "Jackets":"#dc3545","T-shirts":"#007bff","Shorts":"#28a745" };
-const ALPHAS = { "Jackets":"rgba(220,53,69,.80)","T-shirts":"rgba(0,123,255,.80)","Shorts":"rgba(40,167,69,.80)" };
-const sortedDates = Object.keys(dailyData).sort();
+const COLORS = {"Jackets":"#dc3545","T-shirts":"#007bff","Shorts":"#28a745"};
+const ALPHAS = {"Jackets":"rgba(220,53,69,.80)","T-shirts":"rgba(0,123,255,.80)","Shorts":"rgba(40,167,69,.80)"};
+const sortedDates=Object.keys(dailyData).sort();
 
-// ── TAB STATE ───────────────────────────────────
-let selDur  = "1d";
-let selMode = "weekly";
-
-function selectTab(btn) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selDur  = btn.dataset.dur;
-    selMode = btn.dataset.mode;
-    document.getElementById('selLabel').textContent = 'Selected: ' + btn.innerText.replace(/\n/g,' ').trim();
-    document.getElementById('predictionResults').style.display = 'none';
+// ── Tab state ───────────────────────────────────────────────────────────────
+let selDur='1d', selMode='weekly';
+function selectTab(btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  selDur=btn.dataset.dur; selMode=btn.dataset.mode;
+  document.getElementById('selLabel').textContent='Selected: '+btn.innerText.replace(/\n/g,' ').trim();
+  document.getElementById('predictionResults').style.display='none';
 }
-document.getElementById('selLabel').textContent = 'Selected: Tomorrow 1 Day';
+document.getElementById('selLabel').textContent='Selected: Tomorrow 1 Day';
 
-// ── ACTUAL SALES BAR CHART ──────────────────────
-const barLabels = sortedDates.map(d => {
-    const dt = new Date(d + 'T00:00:00');
-    return dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-});
+// ── Actual sales chart ──────────────────────────────────────────────────────
+const barLabels=sortedDates.map(d=>new Date(d+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}));
 new Chart(document.getElementById('salesBarChart').getContext('2d'),{
-    type:'bar',
-    data:{
-        labels: barLabels,
-        datasets: CATS.map(cat => ({
-            label: cat,
-            data: sortedDates.map(d => dailyData[d][cat] || 0),
-            backgroundColor: ALPHAS[cat],
-            borderColor: COLORS[cat],
-            borderWidth: 1.5, borderRadius: 5, borderSkipped: false
-        }))
-    },
-    options:{
-        responsive:true,
-        interaction:{mode:'index',intersect:false},
-        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.raw} unit${ctx.raw!==1?'s':''}`}} },
-        scales:{
-            x:{title:{display:true,text:'Day of Week',font:{weight:'600'}},grid:{display:false}},
-            y:{beginAtZero:true,title:{display:true,text:'Units Sold',font:{weight:'600'}},ticks:{stepSize:1,precision:0}}
-        }
+  type:'bar',
+  data:{labels:barLabels,datasets:CATS.map(cat=>({
+    label:cat, data:sortedDates.map(d=>dailyData[d][cat]||0),
+    backgroundColor:ALPHAS[cat], borderColor:COLORS[cat],
+    borderWidth:1.5, borderRadius:5, borderSkipped:false
+  }))},
+  options:{
+    responsive:true,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.raw} unit${ctx.raw!==1?'s':''}`}}},
+    scales:{
+      x:{title:{display:true,text:'Day of Week',font:{weight:'600'}},grid:{display:false}},
+      y:{beginAtZero:true,title:{display:true,text:'Units Sold',font:{weight:'600'}},ticks:{stepSize:1,precision:0}}
     }
+  }
 });
 
-// ── PH HOLIDAY MAP (client-side labels) ─────────
-const PH_HOL = {
-    "01-01":{l:"New Year's Day",c:true},
-    "04-02":{l:"Maundy Thursday",c:false},
-    "04-03":{l:"Good Friday",c:false},
-    "04-04":{l:"Black Saturday",c:false},
-    "04-09":{l:"Araw ng Kagitingan",c:false},
-    "05-01":{l:"Labor Day",c:false},
-    "06-12":{l:"Independence Day",c:false},
-    "08-21":{l:"Ninoy Aquino Day",c:false},
-    "08-31":{l:"National Heroes Day",c:false},
-    "11-01":{l:"All Saints' Day",c:false},
-    "11-02":{l:"All Souls' Day",c:false},
-    "11-30":{l:"Bonifacio Day",c:false},
-    "12-08":{l:"Immaculate Conception",c:false},
-    "12-24":{l:"Christmas Eve",c:false},
-    "12-25":{l:"Christmas Day",c:true},
-    "12-30":{l:"Rizal Day",c:false},
-    "12-31":{l:"Last Day of Year",c:false},
-    "02-17":{l:"Chinese New Year",c:false},
+// ── PH holiday map ──────────────────────────────────────────────────────────
+const PH_HOL={
+  "01-01":{l:"New Year's Day",c:true},
+  "02-17":{l:"Chinese New Year",c:false},
+  "04-02":{l:"Maundy Thursday",c:false},
+  "04-03":{l:"Good Friday",c:false},
+  "04-04":{l:"Black Saturday",c:false},
+  "04-05":{l:"Easter Sunday",c:false},
+  "04-09":{l:"Araw ng Kagitingan",c:false},
+  "05-01":{l:"Labor Day",c:false},
+  "06-12":{l:"Independence Day",c:false},
+  "08-21":{l:"Ninoy Aquino Day",c:false},
+  "08-25":{l:"National Heroes Day",c:false},
+  "11-01":{l:"All Saints' Day",c:false},
+  "11-02":{l:"All Souls' Day",c:false},
+  "11-30":{l:"Bonifacio Day",c:false},
+  "12-08":{l:"Immaculate Conception",c:false},
+  "12-24":{l:"Christmas Eve",c:false},
+  "12-25":{l:"Christmas Day",c:true},
+  "12-30":{l:"Rizal Day",c:false},
+  "12-31":{l:"New Year's Eve",c:false},
 };
-const PH_MONTH_NOTES = {
-    1:"🎆 New Year boost", 2:"💝 Valentine's + CNY", 3:"☀️ Summer starting",
-    4:"✝️ Holy Week — reduced", 5:"📚 Back-to-school peak", 6:"🎓 Graduation season",
-    7:"🌧️ Rainy season", 8:"🌧️ Peak rainy", 9:"🍂 -Ber months pickup",
-    10:"🎃 Pre-holiday starts", 11:"🛒 Christmas rush", 12:"🎄 Peak Christmas",
+const PH_MONTH_NOTES={
+  1:"🎆 New Year boost",2:"💝 Valentine's + CNY",3:"☀️ Summer starting",
+  4:"✝️ Holy Week — reduced",5:"📚 Back-to-school peak",6:"🎓 Graduation season",
+  7:"🌧️ Rainy season",8:"🌧️ Peak rainy",9:"🍂 -Ber months pickup",
+  10:"🎃 Pre-holiday starts",11:"🛒 Christmas rush",12:"🎄 Peak Christmas",
 };
+function getHol(ds){ return PH_HOL[ds.slice(5)]||null; }
 
-function getHol(dateStr) { return PH_HOL[dateStr.slice(5)] || null; }
+// ── Closed days management ──────────────────────────────────────────────────
+let closedDaysSet = new Set();
 
-// ── MONTHLY CHART INSTANCE ──────────────────────
-let mChart = null;
-
-// ── MAIN RUNNER ─────────────────────────────────
-async function runPrediction() {
-    const btn  = document.getElementById('predictBtn');
-    const load = document.getElementById('sarimaLoading');
-    btn.disabled = true;
-    load.style.display = 'flex';
-    document.getElementById('predictionResults').style.display = 'none';
-    try {
-        const r = await fetch('/api/sarima_forecast?duration=' + selDur);
-        if (!r.ok) throw new Error('Server error ' + r.status);
-        const data = await r.json();
-        if (data.error) throw new Error(data.error);
-        renderParams(data);
-        if (selMode === 'weekly') {
-            renderDaily(data);
-            document.getElementById('dailyView').style.display = 'block';
-            document.getElementById('monthlyView').style.display = 'none';
-        } else {
-            renderMonthly(data);
-            document.getElementById('dailyView').style.display = 'none';
-            document.getElementById('monthlyView').style.display = 'block';
-        }
-        document.getElementById('predictionResults').style.display = 'block';
-    } catch(e) {
-        alert('Forecast error: ' + e.message);
-    } finally {
-        btn.disabled = false;
-        load.style.display = 'none';
-    }
+async function fetchClosedDays(){
+  try{
+    const r=await fetch('/api/closed_days');
+    const d=await r.json();
+    closedDaysSet=new Set(d.closed_days||[]);
+    renderClosedDaysList();
+  }catch(e){ console.error('Failed to load closed days',e); }
 }
 
-function renderParams(data) {
-    const totals = {};
-    for (const cat of CATS) totals[cat] = data.forecast[cat].reduce((a,b)=>a+b,0);
-    const durLabel = data.duration.endsWith('m')
-        ? data.duration.slice(0,-1) + '-Month SARIMA'
-        : data.steps + '-Day SARIMA';
-    const grid = CATS.map(cat => {
-        const col = COLORS[cat];
-        const avg = (totals[cat]/data.steps).toFixed(2);
-        return `<div class="param-item" style="border-top-color:${col};">
-            <div class="param-label" style="color:${col};">${cat}</div>
-            <div class="param-value">${totals[cat]} units</div>
-            <div class="param-sub">Avg ${avg}/day &nbsp;|&nbsp; SARIMA(1,1,1)(1,1,1)[7]</div>
-        </div>`;
-    }).join('');
-    document.getElementById('paramsPanel').innerHTML =
-        `<div class="params-panel-title">📐 ${durLabel} — PH Seasonal Adjusted Forecast</div>
-         <div class="params-grid">${grid}</div>`;
-}
-
-function renderDaily(data) {
-    const labels = data.labels, fc = data.forecast;
-    const tbody  = document.getElementById('predTableBody');
-    tbody.innerHTML = '';
-    let tJ=0,tT=0,tS=0;
-    for (let i=0;i<labels.length;i++) {
-        const ds = labels[i];
-        const dt = new Date(ds+'T00:00:00');
-        const dlbl = dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
-        const J=fc['Jackets'][i]||0,T=fc['T-shirts'][i]||0,S=fc['Shorts'][i]||0;
-        tJ+=J; tT+=T; tS+=S;
-        const hol = getHol(ds);
-        let hBadge='';
-        if (hol) hBadge=`<span class="hol-badge${hol.c?' hol-closed':''}">${hol.c?'🔴 ':'🟡 '}${hol.l}</span>`;
-        const isSun = dt.getDay()===0;
-        const style = (hol&&hol.c)?'background:#fff5f5;':(isSun?'background:#fffdf0;':'');
-        const tr = document.createElement('tr');
-        if(style) tr.setAttribute('style',style);
-        tr.innerHTML=`<td>${dlbl}${hBadge}</td><td class="cat-j">${J}</td><td class="cat-t">${T}</td><td class="cat-s">${S}</td><td class="tot-c">${J+T+S}</td>`;
-        tbody.appendChild(tr);
-    }
-    if (labels.length>1) {
-        const lmap={7:'7-Day',14:'14-Day',21:'21-Day',28:'28-Day'};
-        const lbl = lmap[labels.length]||labels.length+'-Day';
-        const sr=document.createElement('tr');
-        sr.className='sum-row';
-        sr.innerHTML=`<td>📦 ${lbl} TOTAL</td><td class="cat-j">${tJ}</td><td class="cat-t">${tT}</td><td class="cat-s">${tS}</td><td class="tot-c">${tJ+tT+tS}</td>`;
-        tbody.appendChild(sr);
-    }
-}
-
-function renderMonthly(data) {
-    const labels=data.labels, fc=data.forecast;
-    // Aggregate by YYYY-MM
-    const byM={};
-    for (let i=0;i<labels.length;i++) {
-        const ym=labels[i].slice(0,7);
-        if(!byM[ym]) byM[ym]={J:0,T:0,S:0};
-        byM[ym].J+=fc['Jackets'][i]||0;
-        byM[ym].T+=fc['T-shirts'][i]||0;
-        byM[ym].S+=fc['Shorts'][i]||0;
-    }
-    const months=Object.keys(byM).sort();
-    const tbody=document.getElementById('monthTableBody');
-    tbody.innerHTML='';
-    let gJ=0,gT=0,gS=0;
-    const cLabels=[],cJ=[],cT=[],cS=[];
-    for (const ym of months) {
-        const [y,m]=ym.split('-').map(Number);
-        const mName=new Date(y,m-1,1).toLocaleDateString('en-PH',{month:'long',year:'numeric'});
-        const note=PH_MONTH_NOTES[m]||'';
-        const {J,T,S}=byM[ym];
-        gJ+=J;gT+=T;gS+=S;
-        cLabels.push(new Date(y,m-1,1).toLocaleDateString('en-PH',{month:'short',year:'2-digit'}));
-        cJ.push(J);cT.push(T);cS.push(S);
-        const tr=document.createElement('tr');
-        tr.innerHTML=`<td>${mName}</td><td class="cat-j">${J}</td><td class="cat-t">${T}</td><td class="cat-s">${S}</td><td class="tot-c">${J+T+S}</td><td style="font-size:.76rem;color:#666;">${note}</td>`;
-        tbody.appendChild(tr);
-    }
-    const gr=document.createElement('tr'); gr.className='grand-row';
-    gr.innerHTML=`<td>📦 GRAND TOTAL</td><td class="cat-j">${gJ}</td><td class="cat-t">${gT}</td><td class="cat-s">${gS}</td><td style="color:#fff;font-weight:800;">${gJ+gT+gS}</td><td></td>`;
-    tbody.appendChild(gr);
-
-    if (mChart) mChart.destroy();
-    mChart = new Chart(document.getElementById('monthlyChart').getContext('2d'),{
-        type:'bar',
-        data:{
-            labels:cLabels,
-            datasets:[
-                {label:'Jackets', data:cJ, backgroundColor:'rgba(220,53,69,.75)', borderColor:'#dc3545',borderWidth:1.5,borderRadius:4},
-                {label:'T-shirts',data:cT, backgroundColor:'rgba(0,123,255,.75)', borderColor:'#007bff',borderWidth:1.5,borderRadius:4},
-                {label:'Shorts',  data:cS, backgroundColor:'rgba(40,167,69,.75)', borderColor:'#28a745',borderWidth:1.5,borderRadius:4},
-            ]
-        },
-        options:{
-            responsive:true,
-            interaction:{mode:'index',intersect:false},
-            plugins:{
-                legend:{position:'top',labels:{font:{family:"'Space Mono', monospace",size:11}}},
-                tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.raw} units`}}
-            },
-            scales:{
-                x:{grid:{display:false}},
-                y:{beginAtZero:true,title:{display:true,text:'Units Forecast',font:{weight:'600'}},ticks:{precision:0}}
-            }
-        }
+async function markDay(isClosed){
+  const dp=document.getElementById('closureDatePicker');
+  const dateStr=dp.value;
+  if(!dateStr){ alert('Please select a date first.'); return; }
+  try{
+    const r=await fetch('/api/set_closed_day',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({date:dateStr,closed:isClosed})
     });
+    const d=await r.json();
+    if(d.success){
+      closedDaysSet=new Set(d.closed_days||[]);
+      renderClosedDaysList();
+      // Reset forecast results since closed days changed
+      document.getElementById('predictionResults').style.display='none';
+    } else { alert(d.error||'Failed to update.'); }
+  }catch(e){ alert('Error: '+e.message); }
 }
 
-// ── NAV TOGGLE ──────────────────────────────────
-document.getElementById('navToggle').addEventListener('click',()=>{
-    document.querySelector('.nav-links').classList.toggle('open');
-});
+function removeClosure(dateStr){
+  document.getElementById('closureDatePicker').value=dateStr;
+  markDay(false);
+}
+
+function renderClosedDaysList(){
+  const container=document.getElementById('closedDaysList');
+  const sorted=[...closedDaysSet].sort();
+  if(sorted.length===0){
+    container.innerHTML='<span class="closed-days-empty">No days tagged as closed yet.</span>';
+    return;
+  }
+  container.innerHTML=sorted.map(ds=>{
+    const dt=new Date(ds+'T00:00:00');
+    const label=dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    return `<div class="closed-day-pill">🔴 ${label}<button onclick="removeClosure('${ds}')" title="Remove">×</button></div>`;
+  }).join('');
+}
+
+// ── Monthly chart instance ──────────────────────────────────────────────────
+let mChart=null;
+
+// ── Main SARIMA runner ──────────────────────────────────────────────────────
+async function runPrediction(){
+  const btn=document.getElementById('predictBtn');
+  const load=document.getElementById('sarimaLoading');
+  btn.disabled=true; load.style.display='flex';
+  document.getElementById('predictionResults').style.display='none';
+  try{
+    const r=await fetch('/api/sarima_forecast?duration='+selDur);
+    if(!r.ok) throw new Error('Server error '+r.status);
+    const data=await r.json();
+    if(data.error) throw new Error(data.error);
+    // Update closed days from response
+    closedDaysSet=new Set(data.closed_days||[]);
+    renderClosedDaysList();
+    renderParams(data);
+    if(selMode==='weekly'){
+      renderDaily(data);
+      document.getElementById('dailyView').style.display='block';
+      document.getElementById('monthlyView').style.display='none';
+    } else {
+      renderMonthly(data);
+      document.getElementById('dailyView').style.display='none';
+      document.getElementById('monthlyView').style.display='block';
+    }
+    document.getElementById('predictionResults').style.display='block';
+  }catch(e){ alert('Forecast error: '+e.message); }
+  finally{ btn.disabled=false; load.style.display='none'; }
+}
+
+function renderParams(data){
+  const totals={};
+  for(const cat of CATS) totals[cat]=(data.forecast[cat]||[]).reduce((a,b)=>a+b,0);
+  const closedCount=(data.closed_days||[]).filter(ds=>data.labels.includes(ds)).length;
+  const durLabel=data.duration.endsWith('m')?data.duration.slice(0,-1)+'-Month':data.steps+'-Day';
+  const grid=CATS.map(cat=>{
+    const col=COLORS[cat]; const avg=(totals[cat]/data.steps).toFixed(2);
+    return `<div class="param-item" style="border-top-color:${col};">
+      <div class="param-label" style="color:${col};">${cat}</div>
+      <div class="param-value">${totals[cat]} units</div>
+      <div class="param-sub">Avg ${avg}/day &nbsp;|&nbsp; SARIMA(1,1,1)(1,1,1)[7]</div>
+    </div>`;
+  }).join('');
+  const closedNote=closedCount>0?`&nbsp;•&nbsp; ${closedCount} closed day${closedCount>1?'s':''} excluded`:'';
+  document.getElementById('paramsPanel').innerHTML=
+    `<div class="params-panel-title">📐 ${durLabel} SARIMA — PH Seasonal Adjusted${closedNote}</div>
+     <div class="params-grid">${grid}</div>`;
+}
+
+function renderDaily(data){
+  const labels=data.labels, fc=data.forecast;
+  const tbody=document.getElementById('predTableBody');
+  tbody.innerHTML='';
+  let tJ=0,tT=0,tS=0;
+  for(let i=0;i<labels.length;i++){
+    const ds=labels[i];
+    const dt=new Date(ds+'T00:00:00');
+    const dlbl=dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    const J=fc['Jackets'][i]||0, T=fc['T-shirts'][i]||0, S=fc['Shorts'][i]||0;
+    tJ+=J; tT+=T; tS+=S;
+    const hol=getHol(ds);
+    const isClosed=closedDaysSet.has(ds);
+    let badges='';
+    if(isClosed) badges+=`<span class="closed-badge">🔴 CLOSED</span>`;
+    else if(hol) badges+=`<span class="hol-badge${hol.c?' hol-closed':''}">${hol.c?'🔴 ':'🟡 '}${hol.l}</span>`;
+    const tr=document.createElement('tr');
+    if(isClosed) tr.className='closed-row';
+    tr.innerHTML=`<td>${dlbl}${badges}</td><td class="cat-j">${J}</td><td class="cat-t">${T}</td><td class="cat-s">${S}</td><td class="tot-c">${J+T+S}</td>`;
+    tbody.appendChild(tr);
+  }
+  if(labels.length>1){
+    const lmap={'7':'7-Day','14':'14-Day','21':'21-Day','30':'1-Month'};
+    const lbl=lmap[String(labels.length)]||(labels.length+'-Day');
+    const sr=document.createElement('tr'); sr.className='sum-row';
+    sr.innerHTML=`<td>📦 ${lbl} TOTAL</td><td class="cat-j">${tJ}</td><td class="cat-t">${tT}</td><td class="cat-s">${tS}</td><td class="tot-c">${tJ+tT+tS}</td>`;
+    tbody.appendChild(sr);
+  }
+}
+
+function renderMonthly(data){
+  const labels=data.labels, fc=data.forecast;
+  const byM={};
+  for(let i=0;i<labels.length;i++){
+    const ym=labels[i].slice(0,7);
+    if(!byM[ym]) byM[ym]={J:0,T:0,S:0};
+    byM[ym].J+=fc['Jackets'][i]||0;
+    byM[ym].T+=fc['T-shirts'][i]||0;
+    byM[ym].S+=fc['Shorts'][i]||0;
+  }
+  const months=Object.keys(byM).sort();
+  const tbody=document.getElementById('monthTableBody'); tbody.innerHTML='';
+  let gJ=0,gT=0,gS=0;
+  const cLabels=[],cJ=[],cT=[],cS=[];
+  for(const ym of months){
+    const [y,m]=ym.split('-').map(Number);
+    const mName=new Date(y,m-1,1).toLocaleDateString('en-PH',{month:'long',year:'numeric'});
+    const note=PH_MONTH_NOTES[m]||'';
+    const {J,T,S}=byM[ym];
+    gJ+=J; gT+=T; gS+=S;
+    cLabels.push(new Date(y,m-1,1).toLocaleDateString('en-PH',{month:'short',year:'2-digit'}));
+    cJ.push(J); cT.push(T); cS.push(S);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${mName}</td><td class="cat-j">${J}</td><td class="cat-t">${T}</td><td class="cat-s">${S}</td><td class="tot-c">${J+T+S}</td><td style="font-size:.76rem;color:#666;">${note}</td>`;
+    tbody.appendChild(tr);
+  }
+  const gr=document.createElement('tr'); gr.className='grand-row';
+  gr.innerHTML=`<td>📦 GRAND TOTAL</td><td class="cat-j">${gJ}</td><td class="cat-t">${gT}</td><td class="cat-s">${gS}</td><td style="color:#fff;font-weight:800;">${gJ+gT+gS}</td><td></td>`;
+  tbody.appendChild(gr);
+
+  if(mChart) mChart.destroy();
+  mChart=new Chart(document.getElementById('monthlyChart').getContext('2d'),{
+    type:'bar',
+    data:{labels:cLabels,datasets:[
+      {label:'Jackets', data:cJ, backgroundColor:'rgba(220,53,69,.75)', borderColor:'#dc3545',borderWidth:1.5,borderRadius:4},
+      {label:'T-shirts',data:cT, backgroundColor:'rgba(0,123,255,.75)', borderColor:'#007bff',borderWidth:1.5,borderRadius:4},
+      {label:'Shorts',  data:cS, backgroundColor:'rgba(40,167,69,.75)', borderColor:'#28a745',borderWidth:1.5,borderRadius:4},
+    ]},
+    options:{
+      responsive:true,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{position:'top',labels:{font:{family:"'Space Mono', monospace",size:11}}},
+        tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.raw} units`}}
+      },
+      scales:{
+        x:{grid:{display:false}},
+        y:{beginAtZero:true,title:{display:true,text:'Units Forecast',font:{weight:'600'}},ticks:{precision:0}}
+      }
+    }
+  });
+}
 </script>
 </body>
 </html>
