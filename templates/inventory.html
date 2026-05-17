@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory</title>
+<link rel="icon" type="image/svg+xml" href="https://cdn-icons-png.flaticon.com/512/545/545546.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<style>
+    * { box-sizing: border-box; }
+
+    :root {
+        --primary-color: #007bff;
+        --accent-color: #28a745;
+        --danger-color: #dc3545;
+        --background-color: #ffffff;
+        --surface-color: #ffffff;
+        --text-color: #000000;
+        --border-color: #cccccc;
+    }
+
+    body {
+        margin: 0;
+        font-family: 'Space Mono', monospace;
+        background-color: #fff;
+        color: #000;
+        line-height: 1.6;
+        min-height: 100vh;
+        overflow: hidden;
+    }
+
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #ffffff;
+        padding: 20px 40px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        position: relative;
+        z-index: 20;
+    }
+    .navbar h1 { margin: 0; font-size: 1.8em; font-weight: 800; }
+    .nav-links { list-style: none; display: flex; gap: 30px; margin: 0; padding: 0; }
+    .nav-links a { text-decoration: none; color: #1c1c1c; font-weight: 600; padding: 5px 0; }
+    .nav-links a.active { border-bottom: 3px solid #1c1c1c; }
+
+    .page-container { max-width: 1400px; margin: 40px auto; padding: 0 20px; }
+    h2 { font-size: 2.2em; font-weight: 800; color: #000; margin-bottom: 30px; text-align: center; }
+
+    .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 30px; background-color: #fff; border: 1px solid #eee; min-width: 700px; }
+    th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; vertical-align: middle; color: #000; }
+    th { background-color: var(--primary-color); color: #ffffff; font-weight: 700; text-transform: uppercase; font-size: 0.9em; }
+
+    input[type="text"], input[type="number"], select {
+        padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; width: 100%; box-sizing: border-box;
+        background-color: #ffffff !important; color: #000000 !important; font-family: 'Inter', sans-serif;
+        font-size: 0.95em;
+    }
+    input.id-input { text-align: center; font-weight: bold; }
+
+    .stock-cell { min-width: 200px; }
+    .size-inputs { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+    .size-inputs label { display: flex; flex-direction: column; align-items: center; font-size: 0.8em; font-weight: 700; color: #555; }
+    .size-inputs input[type="number"] { width: 50px !important; padding: 6px !important; text-align: center; font-size: 0.9em; }
+
+    .image-col { width: 140px; text-align: center; }
+    .image-upload-container { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .image-upload-row { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; }
+
+    input[type="file"] { display: none; }
+    .upload-label {
+        display: inline-block; padding: 6px 10px; background-color: #f0f0f0; border: 1px solid #ccc;
+        border-radius: 4px; cursor: pointer; font-size: 0.75em; color: #000; white-space: nowrap;
+    }
+    .upload-label:hover { background-color: #e0e0e0; }
+    .upload-btn {
+        background-color: var(--primary-color) !important; color: white !important; padding: 6px 10px !important;
+        font-size: 0.75em !important; border: none; border-radius: 4px; margin: 0 !important; cursor: pointer;
+    }
+    .upload-btn:hover { background-color: #0056b3 !important; }
+
+    .save-btn { background-color: var(--accent-color); color: #ffffff; margin-top: 20px; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 1em; text-transform: uppercase; }
+    .remove-button { background-color: var(--danger-color); color: #ffffff; padding: 8px 14px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.85em; }
+    .add-row-btn { background-color: #28a745; color: #ffffff; padding: 8px 14px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.85em; display: flex; align-items: center; gap: 5px; margin: 0 auto; }
+    .add-row-btn:hover { background-color: #218838; }
+
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255,255,255,0.8); backdrop-filter: blur(2px); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
+    .modal-content { background-color: #ffffff; padding: 30px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+    .modal-buttons { margin-top: 20px; display: flex; justify-content: center; gap: 15px; }
+    .confirm-btn { background-color: var(--danger-color); color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+    .cancel-btn { background-color: #eee; color: #333; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+
+    #loading-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: #f4f7f9;
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        z-index: 9999;
+        transition: opacity 0.6s ease-out, visibility 0.6s;
+    }
+    .loader-container { position: relative; width: 120px; height: 120px; display: flex; justify-content: center; align-items: center; }
+    .apparel-icon { position: absolute; width: 80px; height: 80px; opacity: 0; transform: scale(0.5) translateY(20px); transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .apparel-icon.active { opacity: 1; transform: scale(1) translateY(0); }
+    .apparel-icon.exit  { opacity: 0; transform: scale(1.1) translateY(-30px); }
+    .icon-shirt path  { fill: #007bff; }
+    .icon-shorts path { fill: #28a745; }
+    .icon-jacket path { fill: #dc3545; }
+    .loading-text { margin-top: 20px; font-family: 'Inter', sans-serif; font-weight: 600; color: #555; letter-spacing: 1px; text-transform: uppercase; font-size: 0.9em; }
+    .progress-container { width: 200px; height: 4px; background-color: #e0e0e0; border-radius: 2px; margin-top: 15px; overflow: hidden; }
+    .progress-bar { height: 100%; width: 0%; background-color: #1c1c1c; border-radius: 2px; transition: width 0.1s linear; }
+
+    /* ---- RESPONSIVE ---- */
+    @media (max-width: 768px) {
+        body { overflow-x: hidden; }
+        .navbar { padding: 15px 20px; flex-wrap: wrap; }
+        .navbar h1 { font-size: 1.3em; }
+        .nav-links {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            gap: 0;
+            padding: 10px 0;
+            border-top: 1px solid #eee;
+            margin-top: 10px;
+        }
+        .nav-links.open { display: flex; }
+        .nav-links li { width: 100%; }
+        .nav-links a { display: block; padding: 10px 0; }
+        .nav-links a.active { border-bottom: none; font-weight: 800; color: #007bff; }
+        .nav-toggle { display: flex; }
+
+        .page-container { margin: 20px auto; }
+        h2 { font-size: 1.5em; margin-bottom: 16px; }
+        .save-btn { width: 100%; }
+        .table-responsive { border-radius: 8px; }
+    }
+
+    @media (max-width: 480px) {
+        h2 { font-size: 1.3em; }
+        th, td { padding: 10px 8px; font-size: 0.85em; }
+        .size-inputs input[type="number"] { width: 40px !important; }
+    }
+</style>
+</head>
+<body>
+
+<div id="loading-overlay">
+    <div class="loader-container">
+        <svg class="apparel-icon icon-shirt" viewBox="0 0 512 512">
+            <path d="M376,128H336V96a16,16,0,0,0-16-16H192a16,16,0,0,0-16,16v32H136a40,40,0,0,0-40,40v64a8,8,0,0,0,8,8h40V424a24,24,0,0,0,24,24H344a24,24,0,0,0,24-24V240h40a8,8,0,0,0,8-8V168A40,40,0,0,0,376,128Z"/>
+        </svg>
+        <svg class="apparel-icon icon-shorts" viewBox="0 0 512 512">
+            <path d="M392,112H120a24,24,0,0,0-24,24V344a24,24,0,0,0,24,24h88v-80h96v80h88a24,24,0,0,0,24-24V136A24,24,0,0,0,392,112Z"/>
+        </svg>
+        <svg class="apparel-icon icon-jacket" viewBox="0 0 512 512">
+            <path d="M408.6,147.4l-56-88A16,16,0,0,0,339.1,52H172.9a16,16,0,0,0-13.5,7.4l-56,88A32,32,0,0,0,96,164.6V428a20,20,0,0,0,20,20H396a20,20,0,0,0,20-20V164.6A32,32,0,0,0,408.6,147.4Z"/>
+        </svg>
+    </div>
+    <div class="loading-text" id="loading-text">Loading...</div>
+    <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+</div>
+
+<div id="removeModal" class="modal">
+    <div class="modal-content">
+        <h3 style="color: var(--danger-color); margin-top:0;">Confirm Removal</h3>
+        <p id="modalProductName">Are you sure?</p>
+        <div class="modal-buttons">
+            <button class="confirm-btn" id="confirmRemoveBtn">Yes, Remove</button>
+            <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div class="navbar">
+    <h1>Inventory Admin</h1>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links">
+        <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+        <li><a href="{{ url_for('inventory') }}" class="active">Inventory</a></li>
+        <li><a href="{{ url_for('sales') }}">Sales</a></li>
+        <li><a href="{{ url_for('forecast') }}">Forecast</a></li>
+        <li><a href="{{ url_for('pos') }}">POS</a></li>
+        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+    </ul>
+</div>
+
+<div class="page-container">
+    <h2>Inventory Management</h2>
+
+    <form method="POST" id="inventoryForm">
+        <div class="table-responsive">
+        <table id="inventoryTable">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">ID</th>
+                    <th class="image-col">Image</th>
+                    <th style="width: 20%;">Product</th>
+                    <th style="width: 15%;">Category</th>
+                    <th style="text-align: center;">Stock (S, M, L, XL)</th>
+                    <th>Price</th>
+                    <th style="text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td><input type="text" class="id-input" name="id_{{ item.id }}" value="{{ item.id }}"></td>
+                    <td class="image-col">
+                        <div class="image-upload-container">
+                            {% if item.image_filename %}
+                                <img src="{{ url_for('static', filename='uploads/' + item.image_filename) }}" width="60" height="60" style="object-fit:cover;border-radius:4px;border:1px solid #eee;">
+                            {% else %}
+                                <img src="https://placehold.co/60x60/f0f0f0/ccc?text=No+Img" width="60" height="60" style="object-fit:cover;border-radius:4px;border:1px solid #eee;">
+                            {% endif %}
+                            <div class="image-upload-row">
+                                <label for="file-{{ item.id }}" class="upload-label">Select</label>
+                                <input type="file" id="file-{{ item.id }}" accept="image/*">
+                                <button type="button" class="upload-btn" onclick="uploadImage({{ item.id }})">Up</button>
+                            </div>
+                        </div>
+                    </td>
+                    <td><input type="text" name="name_{{ item.id }}" value="{{ item.name }}"></td>
+                    <td>
+                        <select name="category_{{ item.id }}">
+                            <option value="T-shirts" {% if item.category == 'T-shirts' %}selected{% endif %}>T-Shirt</option>
+                            <option value="Jackets"  {% if item.category == 'Jackets'  %}selected{% endif %}>Jacket</option>
+                            <option value="Shorts"   {% if item.category == 'Shorts'   %}selected{% endif %}>Shorts</option>
+                            <option value="Other"    {% if item.category == 'Other'    %}selected{% endif %}>Other</option>
+                        </select>
+                    </td>
+                    <td class="stock-cell">
+                        <div class="size-inputs">
+                            <label>S  <input type="number" name="stock_s_{{ item.id }}"  value="{{ item.stock_s  | default(0) }}" min="0"></label>
+                            <label>M  <input type="number" name="stock_m_{{ item.id }}"  value="{{ item.stock_m  | default(0) }}" min="0"></label>
+                            <label>L  <input type="number" name="stock_l_{{ item.id }}"  value="{{ item.stock_l  | default(0) }}" min="0"></label>
+                            <label>XL <input type="number" name="stock_xl_{{ item.id }}" value="{{ item.stock_xl | default(0) }}" min="0"></label>
+                        </div>
+                    </td>
+                    <td><input type="number" step="0.01" name="price_{{ item.id }}" value="{{ item.price }}" min="0"></td>
+                    <td style="text-align: center;">
+                        <button type="button" class="remove-button" data-item-id="{{ item.id }}" data-item-name="{{ item.name }}" onclick="openModal(this)">Remove</button>
+                    </td>
+                </tr>
+                {% endfor %}
+
+                <tr class="new-item-row">
+                    <td style="text-align: center; color: #999;">New</td>
+                    <td class="image-col" style="color: #999; font-size: 0.8em;">(Auto)</td>
+                    <td><input type="text" name="new_name[]" placeholder="New Product Name"></td>
+                    <td>
+                        <select name="new_category[]">
+                            <option value="" disabled selected>-- Select --</option>
+                            <option value="T-shirts">T-Shirt</option>
+                            <option value="Jackets">Jacket</option>
+                            <option value="Shorts">Shorts</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </td>
+                    <td class="stock-cell">
+                        <div class="size-inputs">
+                            <label>S  <input type="number" name="new_stock_s[]"  placeholder="0" min="0"></label>
+                            <label>M  <input type="number" name="new_stock_m[]"  placeholder="0" min="0"></label>
+                            <label>L  <input type="number" name="new_stock_l[]"  placeholder="0" min="0"></label>
+                            <label>XL <input type="number" name="new_stock_xl[]" placeholder="0" min="0"></label>
+                        </div>
+                    </td>
+                    <td><input type="number" step="0.01" name="new_price[]" placeholder="Price" min="0"></td>
+                    <td style="text-align: center;">
+                        <button type="button" class="add-row-btn" onclick="addNewRow()">➕ Add Row</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+        <button type="submit" class="save-btn">💾 Save Changes</button>
+    </form>
+</div>
+
+<script>
+    // NAV TOGGLE
+    document.getElementById('navToggle').addEventListener('click', function() {
+        document.querySelector('.nav-links').classList.toggle('open');
+    });
+
+    // LOADING SCREEN
+    document.addEventListener('DOMContentLoaded', () => {
+        const overlay     = document.getElementById('loading-overlay');
+        const icons       = document.querySelectorAll('.apparel-icon');
+        const progressBar = document.getElementById('progress-bar');
+        const loadingText = document.getElementById('loading-text');
+
+        const texts = ["Loading...", "Preparing Data...", "Almost Ready..."];
+        let idx = 0;
+        const totalTime    = 2000;
+        const intervalTime = 600;
+
+        icons[0].classList.add('active');
+        loadingText.innerText = texts[0];
+
+        const cycleIcons = setInterval(() => {
+            icons[idx].classList.remove('active');
+            icons[idx].classList.add('exit');
+            idx = (idx + 1) % icons.length;
+            icons[idx].classList.remove('exit');
+            icons[idx].classList.add('active');
+            loadingText.innerText = texts[idx];
+        }, intervalTime);
+
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress = Math.min(progress + 3, 100);
+            progressBar.style.width = `${progress}%`;
+        }, totalTime / 35);
+
+        setTimeout(() => {
+            clearInterval(cycleIcons);
+            clearInterval(progressInterval);
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.visibility = 'hidden';
+                document.body.style.overflowY = 'auto';
+            }, 600);
+        }, totalTime);
+    });
+
+    // IMAGE UPLOAD
+    async function uploadImage(itemId) {
+        const fileInput = document.getElementById(`file-${itemId}`);
+        const file = fileInput.files[0];
+        if (!file) { alert("Please select an image file first."); return; }
+        const formData = new FormData();
+        formData.append('image', file);
+        try {
+            const response = await fetch(`/upload_image/${itemId}`, { method: 'POST', body: formData });
+            if (response.ok || response.redirected) { window.location.reload(); }
+            else { alert('Upload failed. Please try again.'); }
+        } catch (error) { alert('An error occurred while uploading.'); }
+    }
+
+    // ADD NEW ROW
+    function addNewRow() {
+        const tableBody = document.querySelector('#inventoryTable tbody');
+        const templateRow = document.querySelector('.new-item-row');
+        const newRow = templateRow.cloneNode(true);
+        newRow.querySelectorAll('input, select').forEach(input => input.value = '');
+        tableBody.insertBefore(newRow, templateRow);
+        newRow.querySelector('input[name="new_name[]"]').focus();
+    }
+
+    // REMOVE MODAL
+    let itemToRemoveId = null;
+    function openModal(button) {
+        itemToRemoveId = button.getAttribute('data-item-id');
+        const itemName = button.getAttribute('data-item-name');
+        document.getElementById('modalProductName').textContent = `Remove "${itemName}" (ID: ${itemToRemoveId})?`;
+        document.getElementById('removeModal').style.display = 'flex';
+    }
+    function closeModal() {
+        document.getElementById('removeModal').style.display = 'none';
+        itemToRemoveId = null;
+    }
+    document.getElementById('confirmRemoveBtn').addEventListener('click', () => {
+        if (itemToRemoveId) {
+            const tempForm = document.createElement('form');
+            tempForm.method = 'POST';
+            tempForm.action = `{{ url_for('remove_item', item_id=0) }}`.replace('/0', '/' + itemToRemoveId);
+            document.body.appendChild(tempForm);
+            tempForm.submit();
+        }
+    });
+    document.getElementById('removeModal').addEventListener('click', (e) => {
+        if (e.target.id === 'removeModal') closeModal();
+    });
+</script>
+</body>
+</html>

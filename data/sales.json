@@ -1,0 +1,17 @@
+[
+    {
+        "sale_id": "30fedafd-18cf-4885-9981-aa4f42fa71b8",
+        "datetime": "2026-05-18 00:23:58",
+        "product": {
+            "name": "AMATEUR BALLER SHORTS COMIC V2 (S)"
+        },
+        "product_id": 5,
+        "category": "Shorts",
+        "quantity": 1,
+        "unit_price": 500.0,
+        "total_price": 500.0,
+        "payment_method": "Cash",
+        "buyer_name": "Guest",
+        "amount_tendered": 500.0
+    }
+]

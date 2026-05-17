@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales — Weekly Archive</title>
+<link rel="icon" type="image/svg+xml" href="https://cdn-icons-png.flaticon.com/512/545/545546.png">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+    body {
+        background-color: #f7f8fc;
+        color: #333;
+        font-family: 'Space Mono', monospace;
+        margin: 0;
+    }
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #ffffff;
+        padding: 20px 40px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .navbar h1 { margin: 0; font-size: 1.8em; font-weight: 800; }
+    .nav-links { list-style: none; display: flex; gap: 30px; margin: 0; padding: 0; }
+    .nav-links a { text-decoration: none; color: #1c1c1c; font-weight: 600; padding: 5px 0; }
+    .nav-links a.active { border-bottom: 3px solid #1c1c1c; }
+
+    .page-container { max-width: 1300px; margin: 36px auto; padding: 0 20px 80px; }
+
+    .page-header {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 14px; margin-bottom: 28px;
+    }
+    .page-header h2 { margin: 0; font-size: 2rem; color: #000; }
+
+    .weeks-container { display: flex; flex-direction: column; gap: 14px; }
+
+    .week-card {
+        background: #fff; border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+        overflow: hidden; border: 1px solid #eee;
+        transition: box-shadow 0.2s;
+    }
+    .week-card.current-week { border: 2px solid #007bff; }
+    .week-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,0.12); }
+
+    .week-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 16px 22px; cursor: pointer; user-select: none;
+        background: #fff; gap: 12px; flex-wrap: wrap;
+    }
+    .week-header:hover { background: #f8f9ff; }
+    .week-header-left  { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .week-range { font-weight: 800; font-size: 1.0rem; color: #1c1c1c; }
+
+    .week-tag { padding: 3px 10px; border-radius: 20px; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.5px; }
+    .tag-current  { background: #007bff; color: #fff; }
+    .tag-archived { background: #f0f0f0; color: #888; }
+    .tag-manual   { background: #e8f5e9; color: #2e7d32; }
+
+    .week-header-right { display: flex; align-items: center; gap: 10px; }
+    .week-meta  { font-size: 0.78rem; color: #aaa; }
+    .chevron    { font-size: 1.1rem; color: #bbb; transition: transform 0.25s; }
+    .week-card.open .chevron { transform: rotate(180deg); }
+
+    .btn-forecast {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 6px 14px; border-radius: 20px;
+        background: #f0f7ff; color: #007bff;
+        border: 1.5px solid #bee3f8;
+        font-size: 0.76rem; font-weight: 700;
+        font-family: 'Space Mono', monospace;
+        text-decoration: none; cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+        white-space: nowrap;
+    }
+    .btn-forecast:hover { background: #007bff; color: #fff; border-color: #007bff; }
+
+    .week-body {
+        display: none; padding: 0 22px 22px;
+        border-top: 1px solid #f0f0f0;
+    }
+    .week-card.open .week-body { display: block; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+
+    .week-tabs {
+        display: flex; gap: 0; border-bottom: 2px solid #eee;
+        margin-bottom: 18px; margin-top: 16px;
+    }
+    .week-tab {
+        padding: 8px 18px; font-size: 0.82rem; font-weight: 700;
+        color: #aaa; cursor: pointer; border-bottom: 3px solid transparent;
+        margin-bottom: -2px; transition: color 0.15s, border-color 0.15s;
+    }
+    .week-tab.active { color: #007bff; border-bottom-color: #007bff; }
+    .week-tab:hover { color: #0056b3; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    table.sales-table { width:100%; border-collapse:collapse; background:#fff; border:1px solid #eee; border-radius:10px; overflow:hidden; margin-top:4px; }
+    table.sales-table th { background:#007bff; color:#fff; font-weight:700; text-transform:uppercase; padding:12px 14px; text-align:center; font-size:0.82rem; }
+    table.sales-table td { padding:11px 14px; border-bottom:1px solid #f0f0f0; text-align:center; color:#333; font-size:0.88rem; }
+    table.sales-table tbody tr { cursor:pointer; }
+    table.sales-table tbody tr:hover { background:#f0f8ff; }
+    table.sales-table tr:last-child td { border-bottom:none; }
+
+    .badge-cat { display:inline-block; padding:3px 9px; border-radius:4px; font-size:0.8rem; font-weight:600; }
+    .badge-cat.jackets { background:#fde8ea; color:#b02020; }
+    .badge-cat.tshirts { background:#e8f0fd; color:#1a56cc; }
+    .badge-cat.shorts  { background:#e8fdef; color:#1a6630; }
+    .text-success { color:#28a745; font-weight:600; }
+
+    .no-data-msg { text-align:center; padding:36px 20px; color:#bbb; font-size:0.9rem; border:1px dashed #e0e0e0; border-radius:10px; margin-top:4px; }
+
+    .delete-sale-btn {
+        background:#dc3545; color:#fff; border:none; border-radius:5px;
+        padding:4px 9px; font-size:0.76rem; font-weight:700; cursor:pointer;
+        font-family:'Space Mono',monospace; transition:background 0.15s;
+    }
+    .delete-sale-btn:hover { background:#b02020; }
+
+    .manual-form-wrapper { overflow-x:auto; }
+    .manual-grid { width:100%; border-collapse:collapse; min-width:520px; }
+    .manual-grid th { background:#1c1c1c; color:#fff; padding:10px 14px; font-size:0.8rem; font-weight:700; text-align:center; }
+    .manual-grid td { padding:8px 10px; border-bottom:1px solid #f0f0f0; text-align:center; font-size:0.85rem; }
+    .manual-grid tbody tr:hover { background:#fafafa; }
+    .day-label { font-weight:700; color:#555; text-align:left; padding-left:14px; }
+    .day-label.today-day { color:#007bff; }
+
+    .manual-input {
+        width:72px; padding:6px 8px; border:1.5px solid #ddd; border-radius:6px;
+        text-align:center; font-family:'Space Mono',monospace; font-size:0.88rem;
+        color:#1c1c1c; transition:border-color 0.15s;
+    }
+    .manual-input:focus { outline:none; border-color:#007bff; }
+    .jacket-input:focus { border-color:#dc3545 !important; }
+    .tshirt-input:focus { border-color:#007bff !important; }
+    .shorts-input:focus { border-color:#28a745 !important; }
+
+    .pos-qty      { color:#aaa; font-size:0.72rem; margin-top:2px; }
+    .combined-qty { font-weight:800; color:#1c1c1c; font-size:0.88rem; }
+    .combined-lbl { font-size:0.68rem; color:#bbb; }
+
+    .manual-actions { display:flex; align-items:center; gap:12px; margin-top:14px; flex-wrap:wrap; }
+    .btn-save {
+        background:#1c1c1c; color:#fff; border:none; border-radius:8px;
+        padding:10px 22px; font-weight:700; font-size:0.85rem; cursor:pointer;
+        font-family:'Space Mono',monospace; transition:background 0.15s;
+    }
+    .btn-save:hover { background:#333; }
+    .saved-badge {
+        display:none; background:#d4edda; color:#155724; padding:6px 14px;
+        border-radius:20px; font-size:0.78rem; font-weight:700;
+    }
+    .manual-note { font-size:0.76rem; color:#aaa; }
+
+    .info-box { background:#f0f7ff; border:1px solid #bee3f8; border-radius:8px; padding:12px 16px; font-size:0.8rem; color:#004a8c; margin-bottom:16px; }
+
+    .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:none; justify-content:center; align-items:center; backdrop-filter:blur(4px); z-index:2000; }
+    .modal-content { background:#fff; padding:0; border-radius:8px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.2); width:350px; animation:slideUp 0.3s ease; }
+    @keyframes slideUp { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+    .receipt-paper { background:#fff; padding:20px; font-size:0.9em; font-family:'Space Mono',monospace; border-top:5px solid #1c1c1c; }
+    .receipt-actions { display:flex; gap:10px; padding:15px; background:#f8f9fa; border-top:1px solid #eee; }
+    .close-btn { width:100%; background:#6c757d; color:#fff; border:none; padding:10px; border-radius:4px; cursor:pointer; font-weight:bold; font-family:'Space Mono',monospace; }
+    .close-btn:hover { background:#545b62; }
+
+    .del-modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:3000; backdrop-filter:blur(3px); }
+    .del-modal-box { background:#fff; border-radius:10px; padding:28px; max-width:380px; width:90%; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.2); animation:slideUp 0.25s ease; }
+    .del-modal-box h3 { color:#dc3545; margin-top:0; }
+    .del-modal-box p  { color:#555; font-size:0.9rem; }
+    .del-modal-btns { display:flex; gap:12px; justify-content:center; margin-top:20px; }
+    .del-confirm-btn { background:#dc3545; color:#fff; border:none; padding:10px 24px; border-radius:6px; font-weight:700; cursor:pointer; font-family:'Space Mono',monospace; }
+    .del-confirm-btn:hover { background:#b02020; }
+    .del-cancel-btn  { background:#eee; color:#333; border:none; padding:10px 24px; border-radius:6px; font-weight:700; cursor:pointer; font-family:'Space Mono',monospace; }
+
+    #loading-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background-color:#f4f7f9; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:9999; transition:opacity 0.6s ease-out, visibility 0.6s; }
+    .loader-container { position:relative; width:120px; height:120px; display:flex; justify-content:center; align-items:center; }
+    .apparel-icon { position:absolute; width:80px; height:80px; opacity:0; transform:scale(0.5) translateY(20px); transition:all 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+    .apparel-icon.active { opacity:1; transform:scale(1) translateY(0); }
+    .apparel-icon.exit   { opacity:0; transform:scale(1.1) translateY(-30px); }
+    .icon-shirt  path { fill:#007bff; }
+    .icon-shorts path { fill:#28a745; }
+    .icon-jacket path { fill:#dc3545; }
+    .loading-text { margin-top:20px; font-family:'Inter',sans-serif; font-weight:600; color:#555; letter-spacing:1px; text-transform:uppercase; font-size:0.9em; }
+    .progress-container { width:200px; height:4px; background-color:#e0e0e0; border-radius:2px; margin-top:15px; overflow:hidden; }
+    .progress-bar { height:100%; width:0%; background-color:#1c1c1c; border-radius:2px; transition:width 0.1s linear; }
+
+    .nav-toggle {
+        display: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .nav-toggle span {
+        display: block;
+        width: 25px;
+        height: 2px;
+        background: #1c1c1c;
+        border-radius: 2px;
+    }
+    /* ---- RESPONSIVE ---- */
+    @media (max-width: 768px) {
+        body { overflow-x: hidden; }
+        .navbar { padding: 15px 20px; flex-wrap: wrap; }
+        .navbar h1 { font-size: 1.3em; }
+        .nav-links {
+            display: none !important;
+            flex-direction: column;
+            width: 100%;
+            gap: 0;
+            padding: 10px 0;
+            border-top: 1px solid #eee;
+            margin-top: 10px;
+        }
+        .nav-links.open { display: flex !important; }
+        .nav-links li { width: 100%; }
+        .nav-links a { display: block; padding: 10px 0; }
+        .nav-links a.active { border-bottom: none; font-weight: 800; color: #007bff; }
+        .nav-toggle { display: flex; }
+
+        .page-container { margin: 20px auto; }
+        .page-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+        .page-header h2 { font-size: 1.4rem; }
+
+        .week-header { padding: 12px 14px; }
+        .week-range { font-size: 0.88rem; }
+        .week-header-right { flex-wrap: wrap; gap: 6px; }
+        .btn-forecast { padding: 5px 10px; font-size: 0.72rem; }
+        .week-body { padding: 0 12px 16px; }
+
+        table.sales-table th, table.sales-table td { padding: 8px 10px; font-size: 0.8rem; }
+        .manual-form-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .manual-grid { min-width: 480px; }
+        .manual-input { width: 60px; }
+
+        .modal-content { width: 95vw; }
+        .del-modal-box { width: 95%; padding: 20px; }
+    }
+
+    @media (max-width: 480px) {
+        .week-header { padding: 10px 12px; }
+        .week-header-left { flex-direction: column; align-items: flex-start; gap: 6px; }
+        .week-tag { font-size: 0.68rem; }
+    }
+
+</style>
+</head>
+<body>
+
+<div id="loading-overlay">
+    <div class="loader-container">
+        <svg class="apparel-icon icon-shirt"  viewBox="0 0 512 512"><path d="M376,128H336V96a16,16,0,0,0-16-16H192a16,16,0,0,0-16,16v32H136a40,40,0,0,0-40,40v64a8,8,0,0,0,8,8h40V424a24,24,0,0,0,24,24H344a24,24,0,0,0,24-24V240h40a8,8,0,0,0,8-8V168A40,40,0,0,0,376,128Z"/></svg>
+        <svg class="apparel-icon icon-shorts" viewBox="0 0 512 512"><path d="M392,112H120a24,24,0,0,0-24,24V344a24,24,0,0,0,24,24h88v-80h96v80h88a24,24,0,0,0,24-24V136A24,24,0,0,0,392,112Z"/></svg>
+        <svg class="apparel-icon icon-jacket" viewBox="0 0 512 512"><path d="M408.6,147.4l-56-88A16,16,0,0,0,339.1,52H172.9a16,16,0,0,0-13.5,7.4l-56,88A32,32,0,0,0,96,164.6V428a20,20,0,0,0,20,20H396a20,20,0,0,0,20-20V164.6A32,32,0,0,0,408.6,147.4Z"/></svg>
+    </div>
+    <div class="loading-text" id="loading-text">Loading...</div>
+    <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+</div>
+
+<div class="navbar">
+    <h1>Sales</h1>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
+        <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+        <li><a href="{{ url_for('inventory') }}">Inventory</a></li>
+        <li><a href="{{ url_for('sales') }}" class="active">Sales</a></li>
+        <li><a href="{{ url_for('forecast') }}">Forecast</a></li>
+        <li><a href="{{ url_for('pos') }}">POS</a></li>
+        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+    </ul>
+</div>
+
+<div class="page-container">
+    <div class="page-header">
+        <div>
+            <h2>📦 Sales History</h2>
+        </div>
+    </div>
+    <div class="weeks-container" id="weeksContainer">
+        <p style="color:#aaa;text-align:center;padding:40px;">Loading weeks...</p>
+    </div>
+</div>
+
+<div class="modal-overlay" id="receiptModal">
+    <div class="modal-content">
+        <div class="receipt-paper" id="receiptContent"></div>
+        <div class="receipt-actions">
+            <button class="close-btn" onclick="closeReceipt()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div class="del-modal-overlay" id="delModal">
+    <div class="del-modal-box">
+        <h3>🗑 Delete Sale Record?</h3>
+        <p id="delModalText">Are you sure?</p>
+        <div class="del-modal-btns">
+            <button class="del-confirm-btn" id="delConfirmBtn">Yes, Delete</button>
+            <button class="del-cancel-btn" onclick="closeDelModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// DATA FROM FLASK
+// ============================================================
+const currentSales = {{ sales | tojson }};
+const archiveSales = {{ archive_sales | tojson }};
+const allSales     = [...archiveSales, ...currentSales];
+
+const CATEGORIES  = ['Jackets', 'T-shirts', 'Shorts'];
+
+// ============================================================
+// WEEK GENERATION
+// Anchor: March 16, 2026 (Monday)
+// ============================================================
+function toDateStr(d) {
+    const y  = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${y}-${mo}-${dd}`;
+}
+
+function getWeekStart(date) {
+    const d = new Date(date); d.setHours(0,0,0,0);
+    const day = d.getDay();
+    const diff = (day === 0) ? -6 : 1 - day;
+    d.setDate(d.getDate() + diff);
+    return d;
+}
+
+function generateWeeks() {
+    const ANCHOR = new Date('2026-03-16T00:00:00');
+    const now    = new Date(); now.setHours(0,0,0,0);
+    const cws    = getWeekStart(now);
+    const weeks  = [];
+    let ws = new Date(ANCHOR);
+    while (ws <= cws) {
+        const we = new Date(ws); we.setDate(we.getDate() + 6);
+        weeks.push({ start: new Date(ws), end: new Date(we) });
+        ws.setDate(ws.getDate() + 7);
+    }
+    return weeks.reverse();   // newest first
+}
+
+const WEEKS = generateWeeks();
+
+// ============================================================
+// DATE FORMATTERS
+// ============================================================
+const F_SHORT = { month:'short', day:'numeric', year:'numeric' };
+const F_DAY   = { weekday:'short', month:'short', day:'numeric' };
+const F_LONG  = { weekday:'short', month:'short', day:'numeric', year:'numeric' };
+
+function fmtMoney(n) {
+    return '₱' + parseFloat(n || 0).toFixed(2).replace(/\d(?=(\d{3})+\.)/g,'$&,');
+}
+
+// ============================================================
+// SALES LOOKUP HELPERS
+// ============================================================
+function getSalesForWeek(wsStr, weStr) {
+    return allSales.filter(s => {
+        const d = (s.datetime || '').slice(0,10);
+        return d >= wsStr && d <= weStr;
+    });
+}
+
+function getDailyPosTotals(weekStart, weekEnd) {
+    const wsStr = toDateStr(weekStart);
+    const weStr = toDateStr(weekEnd);
+    const result = {};
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(weekStart); d.setDate(d.getDate() + i);
+        result[toDateStr(d)] = { Jackets:0, 'T-shirts':0, Shorts:0 };
+    }
+    for (const s of getSalesForWeek(wsStr, weStr)) {
+        const d   = (s.datetime || '').slice(0,10);
+        const cat = s.category;
+        if (result[d] && (cat === 'Jackets' || cat === 'T-shirts' || cat === 'Shorts')) {
+            result[d][cat] += (s.quantity || 0);
+        }
+    }
+    return result;
+}
+
+// ============================================================
+// LOCAL STORAGE — manual entries
+// ============================================================
+function manualKey(wsStr)    { return 'manualSales_' + wsStr; }
+function loadManual(wsStr)   { try { const r = localStorage.getItem(manualKey(wsStr)); return r ? JSON.parse(r) : {}; } catch { return {}; } }
+function saveManualLS(wsStr, data) { localStorage.setItem(manualKey(wsStr), JSON.stringify(data)); }
+function hasManualData(wsStr) {
+    const m = loadManual(wsStr);
+    return Object.values(m).some(r => r && (r.Jackets > 0 || r['T-shirts'] > 0 || r.Shorts > 0));
+}
+
+// ============================================================
+// BUILD WEEK CARD HTML
+// ============================================================
+function buildWeekCard(week, isCurrent) {
+    const wsStr = toDateStr(week.start);
+    const weStr = toDateStr(week.end);
+    const hasMn = hasManualData(wsStr);
+    const posAll = getSalesForWeek(wsStr, weStr);
+    const cnt    = posAll.length;
+
+    const rangeLbl = week.start.toLocaleDateString('en-US', F_SHORT)
+                   + ' – '
+                   + week.end.toLocaleDateString('en-US', F_SHORT);
+
+    const tags = (isCurrent ? `<span class="week-tag tag-current">📅 Current Week</span>` : `<span class="week-tag tag-archived">📦 Archived</span>`)
+               + (hasMn    ? ` <span class="week-tag tag-manual" id="manTag_${wsStr}">✏️ Manual Data</span>` : `<span class="week-tag tag-manual" id="manTag_${wsStr}" style="display:none">✏️ Manual Data</span>`);
+
+    const cid = 'wc_' + wsStr.replace(/-/g,'');
+
+    return `
+<div class="week-card${isCurrent ? ' current-week open' : ''}" id="${cid}">
+    <div class="week-header" onclick="toggleWeek('${cid}')">
+        <div class="week-header-left">
+            <span class="week-range">📆 ${rangeLbl}</span>
+            ${tags}
+        </div>
+        <div class="week-header-right">
+            <span class="week-meta">${cnt} POS record${cnt !== 1 ? 's' : ''}</span>
+            <a href="/forecast?week=${wsStr}" class="btn-forecast" onclick="event.stopPropagation();"
+               title="View sales chart &amp; forecast for this week">
+               📊 View Forecast
+            </a>
+            <span class="chevron">▼</span>
+        </div>
+    </div>
+    <div class="week-body">
+        <div class="week-tabs">
+            <div class="week-tab active" onclick="switchTab('${cid}','pos',this)">🛒 POS Sales</div>
+            <div class="week-tab"        onclick="switchTab('${cid}','manual',this)">✏️ Manual Entry</div>
+        </div>
+
+        <div class="tab-panel active" id="${cid}_pos">
+            ${buildPosTab(wsStr, weStr, posAll, isCurrent)}
+        </div>
+
+        <div class="tab-panel" id="${cid}_manual">
+            ${buildManualTab(wsStr, week.start, getDailyPosTotals(week.start, week.end))}
+        </div>
+    </div>
+</div>`;
+}
+
+// ── POS TAB ──
+function buildPosTab(wsStr, weStr, sales, isCurrent) {
+    if (!sales.length) {
+        return `<div class="no-data-msg">📭 No POS sales for this week.<br>
+            <span style="font-size:0.82rem;">Use the <strong>✏️ Manual Entry</strong> tab to add sales data, or
+            <a href="/forecast?week=${wsStr}" style="color:#007bff;font-weight:700;">view the forecast for this week →</a></span></div>`;
+    }
+    const src  = isCurrent ? 'live' : 'archive';
+    const rows = sales.map((s, i) => {
+        const prod = (s.product && typeof s.product === 'object') ? s.product.name : (s.product || 'N/A');
+        const cat  = s.category || 'Other';
+        const bcls = cat === 'Jackets' ? 'jackets' : cat === 'T-shirts' ? 'tshirts' : cat === 'Shorts' ? 'shorts' : '';
+        return `<tr onclick="showReceipt(this)"
+            data-date="${s.datetime||'N/A'}" data-product="${prod.replace(/"/g,'&quot;')}"
+            data-quantity="${s.quantity||0}" data-total="${s.total_price||0}"
+            data-buyer="${s.buyer_name||'Walk-in'}" data-payment="${s.payment_method||'Cash'}"
+            data-ref="${s.reference_number||'N/A'}" data-tendered="${s.amount_tendered||0}"
+            data-change="${s.change_amount||0}">
+            <td>${s.datetime||'N/A'}</td>
+            <td>${prod}</td>
+            <td><span class="badge-cat ${bcls}">${cat}</span></td>
+            <td>${s.quantity||0}</td>
+            <td class="text-success">${fmtMoney(s.total_price)}</td>
+            <td onclick="event.stopPropagation()">
+                <button class="delete-sale-btn"
+                    onclick="confirmDelete(${i},'${src}','${prod.replace(/'/g,"\\'")}')">🗑 Delete</button>
+            </td>
+        </tr>`;
+    }).join('');
+
+    return `<table class="sales-table">
+        <thead><tr>
+            <th>Date / Time</th><th>Product</th><th>Category</th>
+            <th>Qty</th><th>Total Revenue</th><th>Action</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+    </table>
+    <p style="text-align:right;color:#aaa;font-size:0.78rem;margin-top:8px;">${sales.length} record${sales.length!==1?'s':''}</p>`;
+}
+
+// ── MANUAL ENTRY TAB ──
+function buildManualTab(wsStr, weekStart, posTotals) {
+    const today  = toDateStr(new Date());
+    const manual = loadManual(wsStr);
+    let rows = '';
+
+    for (let i = 0; i < 7; i++) {
+        const d  = new Date(weekStart); d.setDate(d.getDate() + i);
+        const ds = toDateStr(d);
+        const lbl = d.toLocaleDateString('en-US', F_DAY);
+        const isT = ds === today;
+
+        const posJ = (posTotals[ds]?.Jackets   || 0);
+        const posT = (posTotals[ds]?.['T-shirts'] || 0);
+        const posS = (posTotals[ds]?.Shorts     || 0);
+        const manJ = (manual[ds]?.Jackets       || 0);
+        const manT = (manual[ds]?.['T-shirts']  || 0);
+        const manS = (manual[ds]?.Shorts        || 0);
+
+        rows += `<tr>
+            <td class="day-label${isT?' today-day':''}">
+                ${isT ? '📍 ' : ''}${lbl}
+            </td>
+            <td>
+                <input type="number" min="0" class="manual-input jacket-input"
+                    id="mi_${wsStr}_${ds}_J" value="${manJ}" placeholder="0"
+                    oninput="onManualInput('${wsStr}','${ds}')">
+                <div class="pos-qty">POS: ${posJ}</div>
+                <div class="combined-qty" id="cmb_${wsStr}_${ds}_J">${posJ+manJ}</div>
+                <div class="combined-lbl">combined</div>
+            </td>
+            <td>
+                <input type="number" min="0" class="manual-input tshirt-input"
+                    id="mi_${wsStr}_${ds}_T" value="${manT}" placeholder="0"
+                    oninput="onManualInput('${wsStr}','${ds}')">
+                <div class="pos-qty">POS: ${posT}</div>
+                <div class="combined-qty" id="cmb_${wsStr}_${ds}_T">${posT+manT}</div>
+                <div class="combined-lbl">combined</div>
+            </td>
+            <td>
+                <input type="number" min="0" class="manual-input shorts-input"
+                    id="mi_${wsStr}_${ds}_S" value="${manS}" placeholder="0"
+                    oninput="onManualInput('${wsStr}','${ds}')">
+                <div class="pos-qty">POS: ${posS}</div>
+                <div class="combined-qty" id="cmb_${wsStr}_${ds}_S">${posS+manS}</div>
+                <div class="combined-lbl">combined</div>
+            </td>
+        </tr>`;
+    }
+
+    return `<div class="info-box">
+        ✏️ <strong>Manual Entry:</strong> Add sales not recorded via POS.
+        After saving, use <strong>📊 View Forecast</strong> on the week header to see predictions.
+    </div>
+    <div class="manual-form-wrapper">
+    <table class="manual-grid">
+        <thead><tr>
+            <th style="text-align:left;padding-left:14px;">Day</th>
+            <th style="color:#ff8a95;">🧥 Jackets</th>
+            <th style="color:#90caf9;">👕 T-shirts</th>
+            <th style="color:#a5d6a7;">🩳 Shorts</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+    </table>
+    </div>
+    <div class="manual-actions">
+        <button class="btn-save" onclick="saveManualForm('${wsStr}')">💾 Save Manual Entries</button>
+        <span class="saved-badge" id="savedBadge_${wsStr}">✅ Saved!</span>
+    </div>`;
+}
+
+// ============================================================
+// INTERACT
+// ============================================================
+function toggleWeek(cid) {
+    document.getElementById(cid).classList.toggle('open');
+}
+
+function switchTab(cid, name, el) {
+    const card = document.getElementById(cid);
+    card.querySelectorAll('.week-tab').forEach(t => t.classList.remove('active'));
+    card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    const pnl = document.getElementById(cid + '_' + name);
+    if (pnl) pnl.classList.add('active');
+}
+
+function onManualInput(wsStr, ds) {
+    const ws  = new Date(wsStr + 'T00:00:00');
+    const we  = new Date(ws); we.setDate(we.getDate() + 6);
+    const pos = getDailyPosTotals(ws, we);
+    const posJ = (pos[ds]?.Jackets || 0);
+    const posT = (pos[ds]?.['T-shirts'] || 0);
+    const posS = (pos[ds]?.Shorts || 0);
+    const manJ = parseInt(document.getElementById(`mi_${wsStr}_${ds}_J`)?.value || '0', 10) || 0;
+    const manT = parseInt(document.getElementById(`mi_${wsStr}_${ds}_T`)?.value || '0', 10) || 0;
+    const manS = parseInt(document.getElementById(`mi_${wsStr}_${ds}_S`)?.value || '0', 10) || 0;
+    const cJ   = document.getElementById(`cmb_${wsStr}_${ds}_J`);
+    const cT   = document.getElementById(`cmb_${wsStr}_${ds}_T`);
+    const cS   = document.getElementById(`cmb_${wsStr}_${ds}_S`);
+    if (cJ) cJ.textContent = posJ + manJ;
+    if (cT) cT.textContent = posT + manT;
+    if (cS) cS.textContent = posS + manS;
+}
+
+function saveManualForm(wsStr) {
+    const ws   = new Date(wsStr + 'T00:00:00');
+    const data = {};
+    for (let i = 0; i < 7; i++) {
+        const d  = new Date(ws); d.setDate(d.getDate() + i);
+        const ds = toDateStr(d);
+        const J  = parseInt(document.getElementById(`mi_${wsStr}_${ds}_J`)?.value || '0', 10) || 0;
+        const T  = parseInt(document.getElementById(`mi_${wsStr}_${ds}_T`)?.value || '0', 10) || 0;
+        const S  = parseInt(document.getElementById(`mi_${wsStr}_${ds}_S`)?.value || '0', 10) || 0;
+        data[ds] = { Jackets: J, 'T-shirts': T, Shorts: S };
+    }
+    saveManualLS(wsStr, data);
+
+    const badge = document.getElementById(`savedBadge_${wsStr}`);
+    if (badge) { badge.style.display = 'inline-block'; setTimeout(() => badge.style.display = 'none', 2500); }
+
+    const hasData = Object.values(data).some(r => r.Jackets > 0 || r['T-shirts'] > 0 || r.Shorts > 0);
+    const tag     = document.getElementById(`manTag_${wsStr}`);
+    if (tag) tag.style.display = hasData ? '' : 'none';
+}
+
+// ============================================================
+// RECEIPT MODAL
+// ============================================================
+function showReceipt(row) {
+    const d   = row.dataset;
+    const mon = n => '₱' + parseFloat(n||0).toFixed(2).replace(/\d(?=(\d{3})+\.)/g,'$&,');
+    document.getElementById('receiptContent').innerHTML = `
+        <div style="text-align:center;margin-bottom:15px;padding-bottom:10px;border-bottom:1px dashed #ccc;">
+            <h3 style="margin:0;text-transform:uppercase;">AmateurxCo</h3>
+            <small>Historical Receipt</small><br><small>${d.date}</small>
+        </div>
+        <div style="margin-bottom:10px;font-size:0.9em;">
+            <div><strong>Customer:</strong> ${d.buyer}</div>
+            <div><strong>Payment:</strong> ${d.payment}${d.payment==='QR'?` (#${d.ref})`:''}</div>
+        </div>
+        <div style="border-top:1px dashed #ccc;padding-top:10px;margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;">
+                <span>${d.product} ×${d.quantity}</span><span>${mon(d.total)}</span>
+            </div>
+        </div>
+        <div style="border-top:2px solid #333;padding-top:10px;display:flex;justify-content:space-between;font-weight:800;font-size:1.1em;">
+            <span>TOTAL</span><span>${mon(d.total)}</span>
+        </div>
+        ${d.payment==='Cash'?`
+        <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:0.9em;color:#555;">
+            <span>Cash Given:</span><span>${mon(d.tendered)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.9em;color:#555;">
+            <span>Change:</span><span>${mon(d.change)}</span>
+        </div>`:''}
+        <div style="text-align:center;margin-top:25px;font-size:0.8em;color:#777;">Thank you for your purchase!</div>`;
+    document.getElementById('receiptModal').style.display = 'flex';
+}
+function closeReceipt() { document.getElementById('receiptModal').style.display = 'none'; }
+document.getElementById('receiptModal').addEventListener('click', e => { if (e.target === document.getElementById('receiptModal')) closeReceipt(); });
+
+// ============================================================
+// DELETE SALE
+// ============================================================
+let _delIdx = null, _delSrc = null;
+function confirmDelete(idx, src, prod) {
+    _delIdx = idx; _delSrc = src;
+    document.getElementById('delModalText').textContent = `Delete record for "${prod}"? This cannot be undone.`;
+    document.getElementById('delModal').style.display = 'flex';
+}
+function closeDelModal() {
+    document.getElementById('delModal').style.display = 'none';
+    _delIdx = null; _delSrc = null;
+}
+document.getElementById('delConfirmBtn').addEventListener('click', () => {
+    if (_delIdx === null) return;
+    const f = document.createElement('form');
+    f.method = 'POST'; f.action = `/delete_sale/${_delSrc}/${_delIdx}`;
+    document.body.appendChild(f); f.submit();
+});
+document.getElementById('delModal').addEventListener('click', e => { if (e.target === document.getElementById('delModal')) closeDelModal(); });
+
+// ============================================================
+// LOADING SCREEN + INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const overlay     = document.getElementById('loading-overlay');
+    const icons       = document.querySelectorAll('.apparel-icon');
+    const progressBar = document.getElementById('progress-bar');
+    const loadingText = document.getElementById('loading-text');
+    const texts = ['Loading...', 'Preparing Data...', 'Almost Ready...'];
+    let idx = 0;
+    icons[0].classList.add('active');
+    loadingText.innerText = texts[0];
+
+    const cycleIcons = setInterval(() => {
+        icons[idx].classList.remove('active'); icons[idx].classList.add('exit');
+        idx = (idx + 1) % icons.length;
+        icons[idx].classList.remove('exit'); icons[idx].classList.add('active');
+        loadingText.innerText = texts[idx];
+    }, 600);
+
+    let progress = 0;
+    const progressInt = setInterval(() => {
+        progress = Math.min(progress + 3, 100);
+        progressBar.style.width = `${progress}%`;
+    }, 2000 / 35);
+
+    setTimeout(() => {
+        clearInterval(cycleIcons);
+        clearInterval(progressInt);
+
+        // Render all week cards
+        const now = new Date(); now.setHours(0,0,0,0);
+        const cwsStr = toDateStr(getWeekStart(now));
+        document.getElementById('weeksContainer').innerHTML =
+            WEEKS.map(w => buildWeekCard(w, toDateStr(w.start) === cwsStr)).join('');
+
+        overlay.style.opacity = '0';
+        setTimeout(() => { overlay.style.visibility = 'hidden'; document.body.style.overflowY = 'auto'; }, 600);
+    }, 2000);
+});
+</script>
+
+<script>
+// NAV TOGGLE
+document.getElementById('navToggle').addEventListener('click', function() {
+    document.querySelector('.nav-links').classList.toggle('open');
+});
+</script>
+</body>
+</html>
