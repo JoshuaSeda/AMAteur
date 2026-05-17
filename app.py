@@ -194,17 +194,22 @@ def sarima_forecast(ts_values, steps, seasonal_period=7):
                         arr_i[i] = arr[nv[0]] * 0.5
             arr = arr_i
         arr = np.log1p(arr)
+        # Use only the most recent 365 data points to keep memory usage low
+        # on constrained hosting environments (e.g. Render free tier 512 MB RAM)
+        if len(arr) > 365:
+            arr = arr[-365:]
         if len(arr) >= seasonal_period * 2:
             try:
                 m = SARIMAX(arr, order=(1,1,1), seasonal_order=(1,1,1,seasonal_period),
                             enforce_stationarity=False, enforce_invertibility=False)
-                raw_fc = m.fit(disp=False, maxiter=200).forecast(steps=steps)
+                raw_fc = m.fit(disp=False, maxiter=100, method='lbfgs',
+                               optim_score=None, low_memory=True).forecast(steps=steps)
             except Exception:
                 m = SARIMAX(arr, order=(1,1,1), enforce_stationarity=False, enforce_invertibility=False)
-                raw_fc = m.fit(disp=False, maxiter=100).forecast(steps=steps)
+                raw_fc = m.fit(disp=False, maxiter=75).forecast(steps=steps)
         else:
             m = SARIMAX(arr, order=(1,1,1), enforce_stationarity=False, enforce_invertibility=False)
-            raw_fc = m.fit(disp=False, maxiter=100).forecast(steps=steps)
+            raw_fc = m.fit(disp=False, maxiter=75).forecast(steps=steps)
         fc = np.expm1(raw_fc)
         return [max(0, round(float(v))) for v in fc]
     except Exception:
@@ -284,18 +289,26 @@ def api_set_closed_day():
 def api_sarima_forecast():
     if "user" not in session:
         return jsonify({"error": "Unauthorized"}), 401
-    duration = request.args.get("duration", "7d")
-    steps    = duration_to_steps(duration)
-    all_sales = load_json(ARCHIVE_FILE) + load_json(SALES_FILE)
-    categories_list = ["Jackets", "T-shirts", "Shorts"]
-    daily_series, _ = build_daily_series(all_sales, categories_list)
-    forecast_start  = date.today() + timedelta(days=1)
-    closed_days     = load_closed_days()
-    result = {cat: run_sarima_for_category(daily_series, cat, forecast_start, steps, closed_days)
-              for cat in categories_list}
-    labels = [(forecast_start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(steps)]
-    return jsonify({"labels": labels, "forecast": result, "steps": steps,
-                    "duration": duration, "closed_days": sorted(closed_days)})
+    try:
+        import traceback
+        duration = request.args.get("duration", "7d")
+        steps    = duration_to_steps(duration)
+        all_sales = load_json(ARCHIVE_FILE) + load_json(SALES_FILE)
+        categories_list = ["Jackets", "T-shirts", "Shorts"]
+        daily_series, _ = build_daily_series(all_sales, categories_list)
+        forecast_start  = date.today() + timedelta(days=1)
+        closed_days     = load_closed_days()
+        result = {cat: run_sarima_for_category(daily_series, cat, forecast_start, steps, closed_days)
+                  for cat in categories_list}
+        labels = [(forecast_start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(steps)]
+        return jsonify({"labels": labels, "forecast": result, "steps": steps,
+                        "duration": duration, "closed_days": sorted(closed_days)})
+    except MemoryError:
+        return jsonify({"error": "Not enough memory to run forecast. Try a shorter duration (e.g. 1 Week or 2 Weeks)."}), 500
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Forecast failed: {str(e)}"}), 500
 
 # ─── Core Routes ──────────────────────────────────────────────────────────────
 

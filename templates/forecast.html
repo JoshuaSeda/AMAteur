@@ -479,8 +479,8 @@ async function runPrediction(){
   document.getElementById('predictionResults').style.display='none';
   try{
     const r=await fetch('/api/sarima_forecast?duration='+selDur);
-    if(!r.ok) throw new Error('Server error '+r.status);
-    const data=await r.json();
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(data.error||('Server error '+r.status));
     if(data.error) throw new Error(data.error);
     // Update closed days from response
     closedDaysSet=new Set(data.closed_days||[]);
